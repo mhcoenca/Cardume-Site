@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cardume TCG — Organize seu grupo de TCG</title>
+  <meta name="description" content="Trocas, pedidos coletivos e cupons para grupos de TCG. Disponível para iOS e Android." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:      #080F1A;
+      --bg-surface:   #111E2D;
+      --bg-surface2:  #1C2C3E;
+      --brand:        #11D8E8;
+      --brand-dark:   #0891A0;
+      --brand-dim:    rgba(17,216,232,0.12);
+      --gold:         #F5A623;
+      --text:         #F2F5F8;
+      --text-muted:   #9AAFC1;
+      --border:       rgba(242,245,248,0.08);
+      --radius:       16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-base);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ─────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px);
+      background: rgba(8,15,26,0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { height: 28px; }
+    .nav-cta {
+      background: var(--brand); color: #080F1A;
+      font-weight: 700; font-size: 14px;
+      padding: 8px 20px; border-radius: 100px;
+      text-decoration: none; transition: opacity .2s;
+    }
+    .nav-cta:hover { opacity: .85; }
+
+    /* ── HERO ────────────────────────────────────────────────────────── */
+    .hero {
+      max-width: 960px; margin: 0 auto;
+      padding: 80px 24px 64px; text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--brand-dim);
+      border: 1px solid rgba(17,216,232,0.3);
+      color: var(--brand); font-size: 13px; font-weight: 600;
+      letter-spacing: .04em; text-transform: uppercase;
+      padding: 4px 14px; border-radius: 100px; margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px); font-weight: 800;
+      line-height: 1.1; letter-spacing: -.02em; margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--brand); }
+    .hero p {
+      font-size: clamp(16px, 2vw, 20px); color: var(--text-muted);
+      max-width: 560px; margin: 0 auto 40px;
+    }
+    .hero-actions {
+      display: flex; gap: 16px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 64px;
+    }
+    .btn-primary {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--brand); color: #080F1A;
+      font-weight: 700; font-size: 15px;
+      padding: 14px 28px; border-radius: 14px; text-decoration: none;
+      transition: opacity .2s, transform .2s;
+    }
+    .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-secondary {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg-surface2); color: var(--text);
+      font-weight: 600; font-size: 15px;
+      padding: 14px 28px; border-radius: 14px; text-decoration: none;
+      border: 1px solid var(--border);
+      transition: background .2s, transform .2s;
+    }
+    .btn-secondary:hover { background: var(--bg-surface); transform: translateY(-1px); }
+    .btn-icon { width: 22px; height: 22px; fill: currentColor; }
+
+    .hero-illustration {
+      width: 100%; max-width: 680px; margin: 0 auto; display: block;
+      filter: drop-shadow(0 24px 48px rgba(17,216,232,0.15));
+    }
+
+    /* ── FEATURES ────────────────────────────────────────────────────── */
+    .features { max-width: 960px; margin: 0 auto; padding: 80px 24px; }
+    .section-label {
+      text-align: center; color: var(--brand); font-size: 13px; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center; font-size: clamp(28px, 4vw, 40px); font-weight: 800;
+      letter-spacing: -.02em; margin-bottom: 56px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: rgba(17,216,232,0.3); transform: translateY(-2px); }
+    .feature-icon {
+      width: 48px; height: 48px; background: var(--brand-dim);
+      border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 16px; font-size: 24px;
+    }
+    .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+    /* ── ILLUSTRATION ────────────────────────────────────────────────── */
+    .illustration-section { padding: 40px 24px 80px; text-align: center; }
+    .illustration-section img {
+      width: 100%; max-width: 760px; display: block; margin: 0 auto;
+    }
+
+    /* ── CTA BAND ────────────────────────────────────────────────────── */
+    .cta-band {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 64px 24px; text-align: center;
+    }
+    .cta-band h2 {
+      font-size: clamp(24px, 4vw, 36px); font-weight: 800;
+      letter-spacing: -.02em; margin-bottom: 12px;
+    }
+    .cta-band p { color: var(--text-muted); margin-bottom: 32px; font-size: 16px; }
+
+    /* ── FOOTER ──────────────────────────────────────────────────────── */
+    footer {
+      max-width: 960px; margin: 0 auto; padding: 40px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
+    }
+    .footer-logo { height: 36px; }
+    .footer-links { display: flex; gap: 20px; font-size: 13px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color .15s; }
+    .footer-links a:hover { color: var(--brand); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); line-height: 1.9; }
+    .footer-copy a {
+      color: var(--text-muted); text-decoration: underline;
+      text-underline-offset: 3px; transition: color .15s;
+    }
+    .footer-copy a:hover { color: var(--text); }
+    .copy-email { cursor: pointer; position: relative; }
+    .copy-email::after {
+      content: 'Copiado!'; position: absolute;
+      bottom: 120%; left: 50%; transform: translateX(-50%);
+      background: var(--brand); color: #080F1A;
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap;
+    }
+    .copy-email.copied::after { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 56px 20px 48px; }
+      .features { padding: 56px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <img class="nav-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
+    <a class="nav-cta" href="#download">Baixar app</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <img src="assets/horizontal.svg" alt="Cardume TCG" style="height:144px;margin:0 auto 28px;display:block;" />
+    <div class="hero-badge">Disponível para iOS e Android</div>
+    <h1>Organize seu grupo de<br /><span>TCG de verdade</span></h1>
+    <p>Trocas, pedidos coletivos e cupons para quem leva as cartinhas a sério. Chega de bagunça no WhatsApp.</p>
+    <div class="hero-actions" id="download">
+      <a class="btn-primary" href="#" aria-label="Baixar na App Store">
+        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        App Store
+      </a>
+      <a class="btn-secondary" href="#" aria-label="Baixar no Google Play">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="var(--text)"><path d="M3.18 23.76c.3.16.63.24.97.22l.1-.06 11.02-6.36-2.39-2.39-9.7 8.59zM.89 1.06C.34 1.64 0 2.56 0 3.73v16.54c0 1.17.34 2.09.89 2.67l.14.13L12.1 12v-.27L1.03.93.89 1.06zm19.53 9.27-2.49-1.44-2.67 2.67 2.67 2.66 2.51-1.45c.72-.41.72-1.08-.02-1.44zM4.25.22l10.97 10.97-2.39 2.4L1.76.93c.34-.42.82-.67 1.35-.71.4 0 .79.13 1.14.0z"/></svg>
+        Google Play
+      </a>
+    </div>
+  </section>
+
+  <!-- VIDEO -->
+  <div style="max-width:800px;margin:0 auto;padding:0 24px 80px;">
+    <div style="position:relative;padding-bottom:56.25%;border-radius:16px;overflow:hidden;border:1px solid rgba(242,245,248,0.08);">
+      <iframe
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        title="Cardume TCG"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        style="position:absolute;top:0;left:0;width:100%;height:100%;">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <p class="section-label">Funcionalidades</p>
+    <h2 class="section-title">Tudo que seu grupo precisa</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔁</div>
+        <h3>Trocas e Saldos</h3>
+        <p>Registre trocas de cartas em segundos. O app calcula automaticamente o saldo bilateral entre cada par de jogadores.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚖️</div>
+        <h3>Simplificação de Dívidas</h3>
+        <p>O Cardume detecta ciclos de dívidas entre membros e sugere como simplificá-las, reduzindo o número de acertos necessários.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Pedidos Coletivos</h3>
+        <p>Organize compras em grupo em lojas TCG. Modo Retirada ou Entrega, com divisão automática de frete entre os participantes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h3>Cupons da Comunidade</h3>
+        <p>Ranking colaborativo de cupons de lojas TCG. A comunidade vota nos melhores descontos para suas próximas compras.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Grupos Fechados</h3>
+        <p>Grupos privados para o seu pessoal de confiança. Convide por link, gerencie funções e mantenha o histórico do grupo.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Chat Global</h3>
+        <p>Converse com entusiastas de TCG de todo o Brasil. Disponível para assinantes Premium.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ILLUSTRATION -->
+  <div class="illustration-section">
+    <img src="assets/vertical.svg" alt="Cardume TCG" style="width:280px;height:auto;" />
+  </div>
+
+  <!-- CTA BAND -->
+  <section class="cta-band">
+    <h2>Pronto para organizar seu grupo?</h2>
+    <p>Gratuito para começar. Disponível para iOS e Android.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <a class="btn-primary" href="#">
+        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        App Store
+      </a>
+      <a class="btn-secondary" href="#">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="var(--text)"><path d="M3.18 23.76c.3.16.63.24.97.22l.1-.06 11.02-6.36-2.39-2.39-9.7 8.59zM.89 1.06C.34 1.64 0 2.56 0 3.73v16.54c0 1.17.34 2.09.89 2.67l.14.13L12.1 12v-.27L1.03.93.89 1.06zm19.53 9.27-2.49-1.44-2.67 2.67 2.67 2.66 2.51-1.45c.72-.41.72-1.08-.02-1.44zM4.25.22l10.97 10.97-2.39 2.4L1.76.93c.34-.42.82-.67 1.35-.71.4 0 .79.13 1.14.0z"/></svg>
+        Google Play
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <img class="footer-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
+    <div class="footer-links">
+      <a href="/privacy">Política de Privacidade</a>
+      <a href="mailto:contato@card-u.me">Suporte</a>
+    </div>
+    <p class="footer-copy">
+      © 2026 Cardume. Todos os direitos reservados.<br />
+      Construído por <a href="https://www.linkedin.com/in/marcelocoenca/" target="_blank" rel="noopener">Marcelo Coenca</a><br />
+      <span class="copy-email" onclick="copyEmail(this)">contato@card-u.me</span>
+    </p>
+  </footer>
+
+  <script>
+    function copyEmail(el) {
+      navigator.clipboard.writeText('contato@card-u.me');
+      el.classList.add('copied');
+      setTimeout(() => el.classList.remove('copied'), 2000);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidade — Cardume TCG</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-base:    #080F1A;
+      --bg-surface: #111E2D;
+      --brand:      #11D8E8;
+      --text:       #F2F5F8;
+      --text-muted: #9AAFC1;
+      --border:     rgba(242,245,248,0.08);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-base);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px);
+      background: rgba(8,15,26,0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { height: 28px; }
+    .nav-back {
+      color: var(--brand); font-size: 14px; font-weight: 600;
+      text-decoration: none;
+    }
+    .nav-back:hover { opacity: .8; }
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 64px 24px 80px;
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+    .updated {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 48px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brand);
+      margin: 40px 0 12px;
+    }
+    p { color: var(--text-muted); margin-bottom: 16px; font-size: 15px; }
+    ul {
+      color: var(--text-muted);
+      font-size: 15px;
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    ul li { margin-bottom: 6px; }
+    a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <img class="nav-logo" src="../assets/horizontal.svg" alt="Cardume TCG" />
+    <a class="nav-back" href="/">← Voltar</a>
+  </nav>
+
+  <div class="content">
+    <h1>Política de Privacidade</h1>
+    <p class="updated">Última atualização: maio de 2026</p>
+
+    <p>Esta Política de Privacidade descreve como o Cardume TCG ("nós", "nosso" ou "app") coleta, usa e protege as informações dos usuários.</p>
+
+    <h2>1. Informações que coletamos</h2>
+    <ul>
+      <li><strong>Autenticação:</strong> endereço de e-mail ao criar conta com e-mail/senha, Google ou Apple Sign-In.</li>
+      <li><strong>Perfil:</strong> nome de usuário, bio e avatar escolhidos pelo usuário durante o cadastro.</li>
+      <li><strong>Conteúdo gerado:</strong> trocas registradas, pedidos, mensagens no chat global e cupons submetidos.</li>
+      <li><strong>Dados de uso:</strong> interações com funcionalidades do app, para melhoria contínua do serviço.</li>
+      <li><strong>Dados de câmera/galeria:</strong> usados exclusivamente para definição de avatar de perfil, com permissão explícita do usuário.</li>
+    </ul>
+
+    <h2>2. Como usamos as informações</h2>
+    <ul>
+      <li>Fornecer e operar as funcionalidades do app (grupos, trocas, pedidos, cupons e chat).</li>
+      <li>Autenticar o usuário e manter a sessão ativa.</li>
+      <li>Exibir anúncios relevantes via Google AdMob (apenas para usuários não-Premium).</li>
+      <li>Diagnosticar falhas e melhorar a estabilidade do app via Firebase Crashlytics.</li>
+    </ul>
+
+    <h2>3. Compartilhamento de dados</h2>
+    <p>Não vendemos nem compartilhamos seus dados pessoais com terceiros, exceto:</p>
+    <ul>
+      <li><strong>Supabase:</strong> infraestrutura de banco de dados e autenticação.</li>
+      <li><strong>Google AdMob:</strong> exibição de anúncios (usuários não-Premium). Sujeito à política de privacidade do Google.</li>
+      <li><strong>Firebase Crashlytics:</strong> relatórios de falhas anônimos.</li>
+      <li><strong>Apple / Google:</strong> provedores de autenticação social, quando utilizados.</li>
+    </ul>
+
+    <h2>4. Rastreamento e publicidade</h2>
+    <p>O Cardume usa o Google AdMob para exibir anúncios a usuários não-Premium. No iOS, solicitamos permissão de rastreamento (ATT) antes de exibir anúncios personalizados. Você pode recusar sem impacto nas funcionalidades do app.</p>
+
+    <h2>5. Retenção de dados</h2>
+    <p>Seus dados são mantidos enquanto sua conta estiver ativa. Ao deletar a conta, todos os dados pessoais são removidos permanentemente de nossos servidores.</p>
+
+    <h2>6. Seus direitos</h2>
+    <ul>
+      <li>Acessar, corrigir ou excluir seus dados a qualquer momento nas configurações do app.</li>
+      <li>Solicitar a exclusão completa da conta em <a href="mailto:contato@card-u.me">contato@card-u.me</a>.</li>
+    </ul>
+
+    <h2>7. Segurança</h2>
+    <p>Utilizamos criptografia em trânsito (HTTPS/TLS) e Row-Level Security no banco de dados para proteger suas informações. Nenhum método de transmissão ou armazenamento é 100% seguro; fazemos nosso melhor para proteger seus dados.</p>
+
+    <h2>8. Crianças</h2>
+    <p>O Cardume não é direcionado a menores de 13 anos. Não coletamos intencionalmente dados de crianças. Caso identifique tal situação, entre em contato conosco.</p>
+
+    <h2>9. Alterações nesta política</h2>
+    <p>Podemos atualizar esta política periodicamente. Notificaremos sobre mudanças significativas pelo app ou por e-mail. O uso continuado após alterações constitui aceitação da nova versão.</p>
+
+    <h2>10. Contato</h2>
+    <p>Dúvidas ou solicitações: <a href="mailto:contato@card-u.me">contato@card-u.me</a></p>
+  </div>
+
+  <footer>
+    <p>© 2026 Cardume. Todos os direitos reservados. · <a href="/">Voltar ao início</a></p>
+  </footer>
+
+</body>
+</html>
