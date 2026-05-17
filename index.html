@@ -171,8 +171,15 @@
     }
     .copy-email.copied::after { opacity: 1; }
 
+    .hero-logo { height: 144px; margin: 0 auto 28px; display: block; }
+
     @media (max-width: 600px) {
-      .hero { padding: 56px 20px 48px; }
+      .hero { padding: 48px 20px 40px; }
+      .hero-logo { height: 88px; margin-bottom: 20px; }
+      .hero h1 { font-size: clamp(28px, 8vw, 40px); }
+      .hero p { font-size: 15px; margin-bottom: 32px; }
+      .hero-actions { gap: 12px; margin-bottom: 40px; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
       .features { padding: 56px 20px; }
     }
   </style>
@@ -187,9 +194,9 @@
 
   <!-- HERO -->
   <section class="hero">
-    <img src="assets/horizontal.svg" alt="Cardume TCG" style="height:144px;margin:0 auto 28px;display:block;" />
+    <img class="hero-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
     <div class="hero-badge">Disponível para iOS e Android</div>
-    <h1>Organize seu grupo de<br /><span>TCG de verdade</span></h1>
+    <h1>Organize seu grupo de <span>TCG de verdade</span></h1>
     <p>Trocas, pedidos coletivos e cupons para quem leva as cartinhas a sério. Chega de bagunça no WhatsApp.</p>
     <div class="hero-actions" id="download">
       <a class="btn-primary" href="#" aria-label="Baixar na App Store">
