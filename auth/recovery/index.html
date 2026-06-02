@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cardume</title>
+</head>
+<body>
+  <script>
+    var target = 'cardumetcg://auth/recovery' + window.location.search + window.location.hash;
+    window.location.replace(target);
+    setTimeout(function() { window.location.replace('https://card-u.me'); }, 3000);
+  </script>
+</body>
+</html>
