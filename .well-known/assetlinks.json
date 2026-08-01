@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.cardume.android",
+    "sha256_cert_fingerprints": ["5E:91:E1:3C:00:94:AA:19:07:39:A8:03:BE:EA:6A:A9:24:4C:81:13:44:8D:E2:C1:1A:65:95:7D:E2:B4:DB:67"]
+  }
+}]

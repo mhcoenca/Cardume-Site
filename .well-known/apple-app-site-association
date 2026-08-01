@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "MFB4S5DGFR.com.cardume.iosApp",
+        "paths": ["/pedido/*"]
+      }
+    ]
+  }
+}
