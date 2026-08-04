@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { Loader2, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
@@ -6,7 +6,9 @@ import {
   getOracleTagsLoadError,
   searchOracleTags,
 } from '@/services/oracleTags/OracleTagService'
-import type { OracleTagMetadata, OracleTagValue } from '@/services/oracleTags/types'
+import { addRecentOracleTag, getRecentOracleTags } from '@/services/oracleTags/recentOracleTags'
+import { toOracleTagValue } from '@/services/oracleTags/types'
+import type { OracleTag, OracleTagValue } from '@/services/oracleTags/types'
 
 interface OracleTagInputProps {
   value: OracleTagValue | null
@@ -14,25 +16,75 @@ interface OracleTagInputProps {
   placeholder?: string
 }
 
+interface OracleTagOption {
+  id: string
+  label: string
+  description?: string | null
+}
+
+function OptionRow({ option, onSelect }: { option: OracleTagOption; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onSelect}
+      className="flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-sm hover:bg-accent"
+    >
+      <span className="font-medium text-foreground">{option.label}</span>
+      {option.description && (
+        <span className="line-clamp-1 text-xs text-muted-foreground">{option.description}</span>
+      )}
+    </button>
+  )
+}
+
+function Dropdown({ children }: { children: ReactNode }) {
+  return (
+    <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+      {children}
+    </div>
+  )
+}
+
 export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputProps) {
   const [inputValue, setInputValue] = useState(value?.label ?? '')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [results, setResults] = useState<OracleTagMetadata[]>([])
+  const [results, setResults] = useState<OracleTag[]>([])
+  const [recent, setRecent] = useState<OracleTagValue[]>([])
 
+  // The dataset load is async; by the time it resolves the user may have
+  // already typed further. A ref (updated every render) lets that callback
+  // read the query as it stands *then*, instead of the one closed over when
+  // the load started — otherwise a stale, usually-empty query would
+  // overwrite whatever the user had already typed.
+  const inputValueRef = useRef(inputValue)
+  inputValueRef.current = inputValue
+
+  // Stays in sync if the value is ever changed from outside this component
+  // (e.g. a future reverse-parsed query or an Inspector edit).
   useEffect(() => {
     setInputValue(value?.label ?? '')
   }, [value])
 
+  function commitSelection(tag: OracleTagValue) {
+    onChange(tag)
+    setInputValue(tag.label)
+    setOpen(false)
+    addRecentOracleTag(tag)
+    setRecent(getRecentOracleTags())
+  }
+
   function handleFocus() {
     setOpen(true)
     setError(null)
+    setRecent(getRecentOracleTags())
     setLoading(true)
     ensureOracleTagsLoaded()
       .then(() => {
         setLoading(false)
-        setResults(searchOracleTags(inputValue))
+        setResults(searchOracleTags(inputValueRef.current))
       })
       .catch(() => {
         setLoading(false)
@@ -44,12 +96,10 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
     const next = event.target.value
     setInputValue(next)
     setResults(searchOracleTags(next))
-  }
-
-  function handleSelect(tag: OracleTagMetadata) {
-    onChange({ id: tag.id, slug: tag.slug, label: tag.label })
-    setInputValue(tag.label)
-    setOpen(false)
+    // Typing never blurs the field, so a selection made just before this
+    // (which closes the dropdown but keeps focus, by design) wouldn't
+    // otherwise reopen it.
+    setOpen(true)
   }
 
   function handleBlur() {
@@ -63,6 +113,8 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
     setInputValue(value?.label ?? '')
   }
 
+  const hasQuery = inputValue.trim().length > 0
+
   return (
     <div className="relative">
       <div className="relative">
@@ -71,6 +123,7 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
           value={inputValue}
           onChange={handleChange}
           onFocus={handleFocus}
+          onClick={() => setOpen(true)}
           onBlur={handleBlur}
           placeholder={placeholder}
           className="pl-8"
@@ -81,34 +134,36 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
       </div>
 
       {open && (
-        <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
-          {error ? (
-            <p className="p-3 text-xs text-destructive">{error}</p>
-          ) : loading ? (
-            <p className="p-3 text-xs text-muted-foreground">Loading Oracle Tags…</p>
-          ) : results.length ? (
-            results.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => handleSelect(tag)}
-                className="flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-sm hover:bg-accent"
-              >
-                <span className="font-medium text-foreground">{tag.label}</span>
-                {tag.description && (
-                  <span className="line-clamp-1 text-xs text-muted-foreground">
-                    {tag.description}
-                  </span>
-                )}
-              </button>
-            ))
+        <Dropdown>
+          {hasQuery ? (
+            error ? (
+              <p className="p-3 text-xs text-destructive">{error}</p>
+            ) : loading ? (
+              <p className="p-3 text-xs text-muted-foreground">Loading Oracle Tags…</p>
+            ) : results.length ? (
+              results.map((tag) => (
+                <OptionRow
+                  key={tag.id}
+                  option={tag}
+                  onSelect={() => commitSelection(toOracleTagValue(tag))}
+                />
+              ))
+            ) : (
+              <p className="p-3 text-xs text-muted-foreground">No matching tags.</p>
+            )
+          ) : recent.length ? (
+            <>
+              <p className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                Recent
+              </p>
+              {recent.map((tag) => (
+                <OptionRow key={tag.id} option={tag} onSelect={() => commitSelection(tag)} />
+              ))}
+            </>
           ) : (
-            <p className="p-3 text-xs text-muted-foreground">
-              {inputValue.trim() ? 'No matching tags.' : 'Start typing to search…'}
-            </p>
+            <p className="p-3 text-xs text-muted-foreground">Start typing to search…</p>
           )}
-        </div>
+        </Dropdown>
       )}
     </div>
   )
