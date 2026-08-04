@@ -93,6 +93,12 @@ interface QueryStoreValue {
   query: string
   /** The final Scryfall search URL: query + imported params + any clause-driven params (Sort, Display…). */
   url: string
+  /**
+   * Same params baked into `url` (imported + clause-driven, e.g. Sort's
+   * `order`), minus `q` — for the in-app Results fetch, which otherwise has
+   * no way to know about params clauses like Sort contribute.
+   */
+  resultParams: Record<string, string>
   addClause: (clauseId: string) => void
   removeInstance: (instanceId: string) => void
   updateInstanceValue: (instanceId: string, value: unknown) => void
@@ -126,6 +132,7 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       hasImport: state.importedParams !== null,
       query,
       url: buildScryfallUrl(query, mergedParams),
+      resultParams: Object.fromEntries(mergedParams.entries()),
       addClause: (clauseId) => dispatch({ type: 'ADD_CLAUSE', clauseId }),
       removeInstance: (instanceId) => dispatch({ type: 'REMOVE_INSTANCE', instanceId }),
       updateInstanceValue: (instanceId, value) =>

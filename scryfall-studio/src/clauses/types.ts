@@ -3,9 +3,11 @@ import type { LucideIcon } from 'lucide-react'
 export type QueryClauseInputType =
   | 'text'
   | 'oracle-tag'
+  | 'type-line'
   | 'multi-select'
   | 'color-operator-multiselect'
   | 'operator-number'
+  | 'legality'
   | 'checkbox'
   | 'select'
 

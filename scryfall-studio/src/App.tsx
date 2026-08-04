@@ -1,20 +1,14 @@
 import '@/clauses/plugins'
-import { BuilderCanvas } from '@/components/clauses/BuilderCanvas'
+import { CanvasArea } from '@/components/layout/CanvasArea'
 import { AppShell } from '@/components/layout/AppShell'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Toolbar } from '@/components/layout/Toolbar'
-import { WorkspacePanel } from '@/components/workspace/WorkspacePanel'
 import { QueryStoreProvider } from '@/store/useQueryStore'
 
 function App() {
   return (
     <QueryStoreProvider>
-      <AppShell
-        toolbar={<Toolbar />}
-        sidebar={<Sidebar />}
-        canvas={<BuilderCanvas />}
-        workspace={<WorkspacePanel />}
-      />
+      <AppShell toolbar={<Toolbar />} sidebar={<Sidebar />} canvas={<CanvasArea />} />
     </QueryStoreProvider>
   )
 }

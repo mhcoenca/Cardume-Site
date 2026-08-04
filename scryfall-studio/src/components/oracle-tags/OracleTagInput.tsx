@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Loader2, Search } from 'lucide-react'
+import { HelpCircle, Loader2, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   ensureOracleTagsLoaded,
@@ -9,6 +10,7 @@ import {
 import { addRecentOracleTag, getRecentOracleTags } from '@/services/oracleTags/recentOracleTags'
 import { toOracleTagValue } from '@/services/oracleTags/types'
 import type { OracleTag, OracleTagValue } from '@/services/oracleTags/types'
+import { OracleTagBrowserModal } from './OracleTagBrowserModal'
 
 interface OracleTagInputProps {
   value: OracleTagValue | null
@@ -53,6 +55,7 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<OracleTag[]>([])
   const [recent, setRecent] = useState<OracleTagValue[]>([])
+  const [browserOpen, setBrowserOpen] = useState(false)
 
   // The dataset load is async; by the time it resolves the user may have
   // already typed further. A ref (updated every render) lets that callback
@@ -117,21 +120,39 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
 
   return (
     <div className="relative">
-      <div className="relative">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={inputValue}
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onClick={() => setOpen(true)}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          className="pl-8"
-        />
-        {loading && (
-          <Loader2 className="absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-        )}
+      <div className="flex items-center gap-1.5">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={inputValue}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onClick={() => setOpen(true)}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            className="pl-8"
+          />
+          {loading && (
+            <Loader2 className="absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          )}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          onClick={() => setBrowserOpen(true)}
+          aria-label="Browse all Oracle Tags"
+          title="Browse all Oracle Tags"
+        >
+          <HelpCircle className="h-4 w-4" />
+        </Button>
       </div>
+
+      <OracleTagBrowserModal
+        open={browserOpen}
+        onOpenChange={setBrowserOpen}
+        onSelect={commitSelection}
+      />
 
       {open && (
         <Dropdown>

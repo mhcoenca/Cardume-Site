@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react'
-import {
-  listQueryClausesByCategory,
-  searchQueryClauses,
-} from '@/clauses/registry'
+import { listQueryClausesByCategory, searchQueryClauses } from '@/clauses/registry'
 import type { AnyQueryClause } from '@/clauses/types'
 import { ClauseSelector } from '@/components/clauses/ClauseSelector'
 import { SearchBox } from '@/components/shared/SearchBox'
+import { WorkspacePanel } from '@/components/workspace/WorkspacePanel'
 import { useQueryStore } from '@/store/useQueryStore'
 
 function groupByCategory(clauses: AnyQueryClause[]): Map<string, AnyQueryClause[]> {
@@ -44,6 +42,10 @@ export function Sidebar() {
           </div>
         ) : null,
       )}
+
+      <div className="-mx-3 mt-2 border-t border-border">
+        <WorkspacePanel />
+      </div>
     </div>
   )
 }

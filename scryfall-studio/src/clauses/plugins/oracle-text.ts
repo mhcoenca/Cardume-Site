@@ -6,7 +6,7 @@ export const oracleTextClause: QueryClause<string> = {
   id: 'oracle-text',
   label: 'Oracle Text',
   description: 'Match cards whose rules text contains the given phrase.',
-  category: 'Oracle Text',
+  category: 'Oracle',
   icon: ScrollText,
   operator: 'o',
   inputType: 'text',

@@ -7,7 +7,7 @@ export const oracleTagClause: QueryClause<OracleTagValue | null> = {
   id: 'oracle-tag',
   label: 'Oracle Tag',
   description: 'Match cards tagged with a community-curated functional tag.',
-  category: 'Oracle Tags',
+  category: 'Oracle',
   icon: Tags,
   operator: 'otag',
   inputType: 'oracle-tag',

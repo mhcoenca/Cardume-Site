@@ -70,3 +70,7 @@ export function getOracleTagDescendants(id: string): OracleTag[] {
 export function getOracleTagAncestors(id: string): OracleTag[] {
   return repository?.getAncestors(id) ?? []
 }
+
+export function getOracleTagRoots(): OracleTag[] {
+  return repository?.getRoots() ?? []
+}

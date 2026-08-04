@@ -19,7 +19,7 @@ export const sortClause: QueryClause<string> = {
   id: 'sort',
   label: 'Sort',
   description: 'Order results — does not affect the query, only the result URL.',
-  category: 'Sort',
+  category: 'Preferences',
   icon: ArrowUpDown,
   operator: 'order',
   inputType: 'select',

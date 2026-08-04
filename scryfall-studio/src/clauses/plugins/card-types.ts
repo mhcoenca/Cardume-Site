@@ -1,57 +1,32 @@
 import { Shapes } from 'lucide-react'
+import { isKnownType } from '@/services/scryfall/typeCatalog'
 import type { QueryClause } from '../types'
 
-const CARD_TYPES = [
-  'creature',
-  'instant',
-  'sorcery',
-  'artifact',
-  'enchantment',
-  'planeswalker',
-  'land',
-]
-
-function serializeGroup(types: string[]): string {
-  if (types.length === 1) return `t:${types[0]}`
-  return `(${types.map((type) => `t:${type}`).join(' or ')})`
-}
-
-// Matches this clause's own serialization: `t:x` or `(t:x or t:y or ...)`.
-// Checking multiple boxes reads as "any of these" — the same mental model
-// as faceted filters elsewhere (checking Red and Blue means red or blue).
-const GROUP_PATTERN = /^\((t:\w+)(?: or (t:\w+))*\)$/i
-const SINGLE_PATTERN = /^t:(\w+)$/i
+// Each selected type becomes its own `t:x` token, space-joined — Scryfall
+// ANDs top-level tokens by default, and that's the correct reading for a
+// type line: a card is Legendary AND Creature AND Elf simultaneously, never
+// "Legendary or Creature". (Wanting "Elf or Goblin" instead is rarer and
+// still expressible by hand in the base query.)
+const TOKEN_PATTERN = /^t:(\w+)$/i
 
 export const cardTypesClause: QueryClause<string[]> = {
-  id: 'card-types',
-  label: 'Card Types',
-  description: 'Match cards of any of the selected types.',
+  id: 'type-line',
+  label: 'Type Line',
+  description: 'Match cards with all of the selected types, subtypes, and supertypes.',
   category: 'Types',
   icon: Shapes,
   operator: 't',
-  inputType: 'multi-select',
-  options: CARD_TYPES.map((type) => ({
-    value: type,
-    label: type.charAt(0).toUpperCase() + type.slice(1),
-  })),
+  inputType: 'type-line',
   defaultValue: [],
-  toQuery: (value) => (value.length ? serializeGroup(value) : ''),
+  toQuery: (value) => value.map((type) => `t:${type.toLowerCase()}`).join(' '),
   fromQuery: (fragment) => {
-    const single = SINGLE_PATTERN.exec(fragment)
-    if (single) {
-      const type = single[1].toLowerCase()
-      return CARD_TYPES.includes(type) ? [type] : null
-    }
-    if (!GROUP_PATTERN.test(fragment)) return null
-    const types = fragment
-      .slice(1, -1)
-      .split(' or ')
-      .map((part) => part.replace(/^t:/i, '').toLowerCase())
-    return types.every((type) => CARD_TYPES.includes(type)) ? types : null
+    const match = TOKEN_PATTERN.exec(fragment)
+    if (!match) return null
+    return isKnownType(match[1]) ? [match[1]] : null
   },
   metadata: {
-    keywords: ['type', 'creature', 'instant', 'sorcery', 'artifact', 'enchantment', 'land'],
-    examples: ['t:creature', '(t:creature or t:artifact)'],
+    keywords: ['type', 'subtype', 'supertype', 'creature type', 'tribal'],
+    examples: ['t:creature', 't:legendary t:creature'],
     docsUrl: 'https://scryfall.com/docs/syntax#card-types',
   },
 }

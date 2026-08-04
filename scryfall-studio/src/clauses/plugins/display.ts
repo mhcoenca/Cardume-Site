@@ -11,7 +11,7 @@ export const displayClause: QueryClause<string> = {
   id: 'display',
   label: 'Display',
   description: 'How results are laid out — does not affect the query, only the result URL.',
-  category: 'Display',
+  category: 'Preferences',
   icon: LayoutGrid,
   operator: 'as',
   inputType: 'select',

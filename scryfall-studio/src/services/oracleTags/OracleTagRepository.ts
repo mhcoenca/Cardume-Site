@@ -12,6 +12,7 @@ export class OracleTagRepository {
   private readonly bySlug = new Map<string, OracleTag>()
   private readonly descendantsById = new Map<string, OracleTag[]>()
   private readonly ancestorsById = new Map<string, OracleTag[]>()
+  private readonly roots: OracleTag[]
 
   constructor(dataset: OracleTagDataset) {
     this.updatedAt = dataset.updatedAt
@@ -24,6 +25,9 @@ export class OracleTagRepository {
       this.descendantsById.set(tag.id, this.closure(tag.id, (t) => t.childIds))
       this.ancestorsById.set(tag.id, this.closure(tag.id, (t) => t.parentIds))
     }
+    this.roots = dataset.tags
+      .filter((tag) => tag.parentIds.length === 0)
+      .sort((a, b) => a.label.localeCompare(b.label))
   }
 
   private closure(rootId: string, edges: (tag: OracleTag) => string[]): OracleTag[] {
@@ -77,5 +81,10 @@ export class OracleTagRepository {
 
   getAncestors(id: string): OracleTag[] {
     return this.ancestorsById.get(id) ?? []
+  }
+
+  /** Tags with no parent — the entry points into the hierarchy, alphabetical. */
+  getRoots(): OracleTag[] {
+    return this.roots
   }
 }

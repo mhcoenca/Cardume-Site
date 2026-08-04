@@ -9,8 +9,14 @@ import {
 } from '@/components/ui/select'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
 import { ToggleButtonGroup } from './ToggleButtonGroup'
+import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
 import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
+import {
+  FORMAT_OPTIONS,
+  LEGALITY_STATUSES,
+  type LegalityValue,
+} from '@/clauses/plugins/legality'
 import type { AnyQueryClause } from '@/clauses/types'
 import type { OracleTagValue } from '@/services/oracleTags/types'
 
@@ -55,6 +61,9 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
           </SelectContent>
         </Select>
       )
+
+    case 'type-line':
+      return <TypeLineInput value={(value as string[]) ?? []} onChange={onChange} />
 
     case 'multi-select': {
       const selected = (value as string[]) ?? []
@@ -141,6 +150,46 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             }
             className="flex-1"
           />
+        </div>
+      )
+    }
+
+    case 'legality': {
+      const legalityValue = value as LegalityValue
+      return (
+        <div className="flex items-center gap-2">
+          <Select
+            items={LEGALITY_STATUSES}
+            value={legalityValue.status}
+            onValueChange={(status) => onChange({ ...legalityValue, status })}
+          >
+            <SelectTrigger className="w-36 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LEGALITY_STATUSES.map((status) => (
+                <SelectItem key={status.value} value={status.value}>
+                  {status.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            items={FORMAT_OPTIONS}
+            value={legalityValue.format}
+            onValueChange={(format) => onChange({ ...legalityValue, format })}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FORMAT_OPTIONS.map((format) => (
+                <SelectItem key={format.value} value={format.value}>
+                  {format.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )
     }
