@@ -3,7 +3,10 @@ import type { LucideIcon } from 'lucide-react'
 export type QueryClauseInputType =
   | 'text'
   | 'oracle-tag'
-  | 'color-multiselect'
+  | 'multi-select'
+  | 'color-operator-multiselect'
+  | 'operator-number'
+  | 'checkbox'
   | 'select'
 
 export interface QueryClauseMetadata {
@@ -34,14 +37,20 @@ export interface QueryClause<TValue = unknown> {
   icon: LucideIcon
   operator: string
   inputType: QueryClauseInputType
-  /** Static choices for 'select' and 'color-multiselect' input types. */
+  /** Static choices for 'select' and multi-select input types. */
   options?: QueryClauseOption[]
   defaultValue: TValue
-  /** Serializes the clause's current value into its Scryfall query fragment. */
+  /** Serializes the clause's current value into its Scryfall query (`q`) fragment. */
   toQuery: (value: TValue) => string
   /**
-   * Reconstructs the clause's value from a matching query fragment.
-   * Reserved for the future bidirectional (query -> UI) parser; not called yet.
+   * For clauses whose effect is a URL param rather than a query fragment
+   * (e.g. Sort -> `order=`, Display -> `as=`). Most clauses don't need this.
+   */
+  toUrlParams?: (value: TValue) => Record<string, string>
+  /**
+   * Reconstructs the clause's value from a single query token. Used by the
+   * URL-import parser to recognize known fragments; return null to leave a
+   * token unrecognized (it stays in the opaque base query).
    */
   fromQuery?: (fragment: string) => TValue | null
   validate?: (value: TValue) => boolean

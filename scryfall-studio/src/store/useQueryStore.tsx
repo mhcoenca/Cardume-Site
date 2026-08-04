@@ -2,10 +2,15 @@ import { createContext, useContext, useMemo, useReducer, type ReactNode } from '
 import { getQueryClause } from '@/clauses/registry'
 import { buildScryfallUrl, parseScryfallUrl } from '@/lib/scryfallUrl'
 import { buildQuery } from '@/query/buildQuery'
+import { buildUrlParams } from '@/query/buildUrlParams'
+import { parseQuery } from '@/query/parseQuery'
 import type { QueryClauseInstance } from '@/query/types'
 
 interface QueryState {
   instances: QueryClauseInstance[]
+  /** Raw `q` as imported, unmodified — shown as-is in the Workspace. */
+  importedQuery: string | null
+  /** The portion of the (possibly imported) query no registered clause recognized. */
   baseQuery: string
   importedParams: URLSearchParams | null
 }
@@ -15,10 +20,21 @@ type QueryAction =
   | { type: 'REMOVE_INSTANCE'; instanceId: string }
   | { type: 'UPDATE_VALUE'; instanceId: string; value: unknown }
   | { type: 'MOVE_INSTANCE'; instanceId: string; direction: 'up' | 'down' }
-  | { type: 'IMPORT_URL'; baseQuery: string; params: URLSearchParams }
+  | {
+      type: 'IMPORT_URL'
+      importedQuery: string
+      residual: string
+      recognizedInstances: QueryClauseInstance[]
+      params: URLSearchParams
+    }
   | { type: 'CLEAR_IMPORT' }
 
-const initialState: QueryState = { instances: [], baseQuery: '', importedParams: null }
+const initialState: QueryState = {
+  instances: [],
+  importedQuery: null,
+  baseQuery: '',
+  importedParams: null,
+}
 
 function queryReducer(state: QueryState, action: QueryAction): QueryState {
   switch (action.type) {
@@ -54,9 +70,15 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
       return { ...state, instances }
     }
     case 'IMPORT_URL':
-      return { ...state, baseQuery: action.baseQuery, importedParams: action.params }
+      return {
+        ...state,
+        importedQuery: action.importedQuery,
+        baseQuery: action.residual,
+        importedParams: action.params,
+        instances: [...action.recognizedInstances, ...state.instances],
+      }
     case 'CLEAR_IMPORT':
-      return { ...state, baseQuery: '', importedParams: null }
+      return { ...state, importedQuery: null, baseQuery: '', importedParams: null }
     default:
       return state
   }
@@ -64,17 +86,22 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
 
 interface QueryStoreValue {
   instances: QueryClauseInstance[]
-  baseQuery: string
+  /** Raw `q` as imported, unmodified — null if nothing was imported. */
+  importedQuery: string | null
   hasImport: boolean
-  /** The full query, combining the imported base query with clause additions. */
+  /** The full query: unrecognized imported portion + every clause's toQuery(). */
   query: string
-  /** The final Scryfall search URL, preserving any imported params (order, as, prefer…). */
+  /** The final Scryfall search URL: query + imported params + any clause-driven params (Sort, Display…). */
   url: string
   addClause: (clauseId: string) => void
   removeInstance: (instanceId: string) => void
   updateInstanceValue: (instanceId: string, value: unknown) => void
   moveInstance: (instanceId: string, direction: 'up' | 'down') => void
-  /** Attempts to import a Scryfall search URL. Returns false if it isn't one. */
+  /**
+   * Attempts to import a Scryfall search URL. Returns false if it isn't one.
+   * Recognized fragments of its query become clause cards; the rest stays
+   * an opaque base query, same as before.
+   */
   importUrl: (rawUrl: string) => boolean
   clearImport: () => void
 }
@@ -88,12 +115,17 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
     const additions = buildQuery(state.instances)
     const query = [state.baseQuery, additions].filter(Boolean).join(' ')
 
+    const mergedParams = new URLSearchParams(state.importedParams ?? undefined)
+    for (const [key, val] of Object.entries(buildUrlParams(state.instances))) {
+      mergedParams.set(key, val)
+    }
+
     return {
       instances: state.instances,
-      baseQuery: state.baseQuery,
+      importedQuery: state.importedQuery,
       hasImport: state.importedParams !== null,
       query,
-      url: buildScryfallUrl(query, state.importedParams ?? undefined),
+      url: buildScryfallUrl(query, mergedParams),
       addClause: (clauseId) => dispatch({ type: 'ADD_CLAUSE', clauseId }),
       removeInstance: (instanceId) => dispatch({ type: 'REMOVE_INSTANCE', instanceId }),
       updateInstanceValue: (instanceId, value) =>
@@ -103,7 +135,14 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       importUrl: (rawUrl) => {
         const parsed = parseScryfallUrl(rawUrl)
         if (!parsed) return false
-        dispatch({ type: 'IMPORT_URL', baseQuery: parsed.baseQuery, params: parsed.params })
+        const { instances: recognizedInstances, residual } = parseQuery(parsed.baseQuery)
+        dispatch({
+          type: 'IMPORT_URL',
+          importedQuery: parsed.baseQuery,
+          residual,
+          recognizedInstances,
+          params: parsed.params,
+        })
         return true
       },
       clearImport: () => dispatch({ type: 'CLEAR_IMPORT' }),

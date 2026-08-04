@@ -12,6 +12,13 @@ export const oracleTextClause: QueryClause<string> = {
   inputType: 'text',
   defaultValue: '',
   toQuery: (value) => (value.trim() ? `o:${formatTextOperand(value)}` : ''),
+  fromQuery: (fragment) => {
+    if (!fragment.toLowerCase().startsWith('o:')) return null
+    const operand = fragment.slice('o:'.length)
+    const isQuoted = operand.length >= 2 && operand.startsWith('"') && operand.endsWith('"')
+    const unquoted = isQuoted ? operand.slice(1, -1) : operand
+    return unquoted || null
+  },
   metadata: {
     keywords: ['rules text', 'card text', 'oracle'],
     examples: ['o:draw', 'o:"draw a card"'],

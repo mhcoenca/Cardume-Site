@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -6,8 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
+import { ToggleButtonGroup } from './ToggleButtonGroup'
+import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
+import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
 import type { AnyQueryClause } from '@/clauses/types'
 import type { OracleTagValue } from '@/services/oracleTags/types'
 
@@ -39,7 +42,7 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
 
     case 'select':
       return (
-        <Select value={value as string} onValueChange={onChange}>
+        <Select items={clause.options ?? []} value={value as string} onValueChange={onChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder={clause.metadata?.placeholder} />
           </SelectTrigger>
@@ -53,36 +56,102 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
         </Select>
       )
 
-    case 'color-multiselect': {
+    case 'multi-select': {
       const selected = (value as string[]) ?? []
       return (
-        <div className="flex flex-wrap gap-2">
-          {clause.options?.map((option) => {
-            const isSelected = selected.includes(option.value)
-            return (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() =>
-                  onChange(
-                    isSelected
-                      ? selected.filter((code) => code !== option.value)
-                      : [...selected, option.value],
-                  )
-                }
-                className={cn(
-                  'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
-                  isSelected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-transparent text-foreground hover:bg-accent',
-                )}
-              >
-                {option.label}
-              </button>
+        <ToggleButtonGroup
+          options={clause.options ?? []}
+          selected={selected}
+          onToggle={(optionValue) =>
+            onChange(
+              selected.includes(optionValue)
+                ? selected.filter((v) => v !== optionValue)
+                : [...selected, optionValue],
             )
-          })}
+          }
+        />
+      )
+    }
+
+    case 'color-operator-multiselect': {
+      const colorValue = value as ColorClauseValue
+      return (
+        <div className="flex flex-col gap-2">
+          <Select
+            items={COLOR_OPERATORS}
+            value={colorValue.operator}
+            onValueChange={(operator) => onChange({ ...colorValue, operator })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COLOR_OPERATORS.map((op) => (
+                <SelectItem key={op.value} value={op.value}>
+                  {op.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <ToggleButtonGroup
+            options={clause.options ?? []}
+            selected={colorValue.colors}
+            onToggle={(code) =>
+              onChange({
+                ...colorValue,
+                colors: colorValue.colors.includes(code)
+                  ? colorValue.colors.filter((c) => c !== code)
+                  : [...colorValue.colors, code],
+              })
+            }
+          />
         </div>
+      )
+    }
+
+    case 'operator-number': {
+      const numberValue = value as OperatorNumberValue
+      return (
+        <div className="flex items-center gap-2">
+          <Select
+            items={COMPARISON_OPERATORS}
+            value={numberValue.operator}
+            onValueChange={(operator) => onChange({ ...numberValue, operator })}
+          >
+            <SelectTrigger className="w-56 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPARISON_OPERATORS.map((op) => (
+                <SelectItem key={op.value} value={op.value}>
+                  {op.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            value={numberValue.value ?? ''}
+            placeholder={clause.metadata?.placeholder}
+            onChange={(event) =>
+              onChange({
+                ...numberValue,
+                value: event.target.value === '' ? null : Number(event.target.value),
+              })
+            }
+            className="flex-1"
+          />
+        </div>
+      )
+    }
+
+    case 'checkbox': {
+      const checked = Boolean(value)
+      return (
+        <label className="flex w-fit items-center gap-2 text-sm text-foreground">
+          <Checkbox checked={checked} onCheckedChange={(next) => onChange(next === true)} />
+          {clause.metadata?.placeholder ?? clause.label}
+        </label>
       )
     }
 
