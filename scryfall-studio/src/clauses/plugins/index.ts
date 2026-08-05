@@ -1,6 +1,7 @@
 import { registerQueryClause } from '../registry'
 import { oracleTextClause } from './oracle-text'
 import { oracleTagClause } from './oracle-tag'
+import { reverseOracleTagClause } from './reverse-oracle-tag'
 import { colorsClause } from './colors'
 import { identityClause } from './identity'
 import { manaValueClause } from './mana-value'
@@ -9,15 +10,19 @@ import { cardTypesClause } from './card-types'
 import { powerClause } from './power'
 import { toughnessClause } from './toughness'
 import { legalityClause } from './legality'
-import { sortClause } from './sort'
-import { displayClause } from './display'
 
 // Game isn't registered yet — not in this round's scope. commander-identity.ts
 // is superseded by identity.ts (same `id:`/color-identity semantics) and
 // stays unregistered. Re-registering it later is a two-line change.
+//
+// Sort and Display aren't clauses at all anymore — neither ever affected the
+// query, only the result URL/display, so Sort now lives as a fixed control
+// on the Results action bar (see src/lib/sortOptions.ts) and Display was
+// dropped outright (unused in practice).
 
 registerQueryClause(oracleTextClause)
 registerQueryClause(oracleTagClause)
+registerQueryClause(reverseOracleTagClause)
 registerQueryClause(colorsClause)
 registerQueryClause(identityClause)
 registerQueryClause(manaValueClause)
@@ -26,5 +31,3 @@ registerQueryClause(cardTypesClause)
 registerQueryClause(powerClause)
 registerQueryClause(toughnessClause)
 registerQueryClause(legalityClause)
-registerQueryClause(sortClause)
-registerQueryClause(displayClause)

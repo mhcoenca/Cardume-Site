@@ -74,3 +74,8 @@ export function getOracleTagAncestors(id: string): OracleTag[] {
 export function getOracleTagRoots(): OracleTag[] {
   return repository?.getRoots() ?? []
 }
+
+/** Every tag directly applied to a card, given its oracle_id. */
+export function getOracleTagsForCard(oracleId: string): OracleTag[] {
+  return repository?.getTagsForOracleId(oracleId) ?? []
+}

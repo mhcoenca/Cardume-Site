@@ -17,8 +17,15 @@ export interface OracleTag {
   parentIds: string[]
   childIds: string[]
   uri: string
-  /** Number of oracle_ids directly tagged — the taggings array itself is not retained. */
+  /** How many cards carry this tag directly — kept even though taggingOracleIds also has the count, for cheap display. */
   taggingCount: number
+  /**
+   * The oracle_ids of directly-tagged cards. Retained (not just counted) so
+   * a card -> tags reverse lookup is possible — see OracleTagRepository's
+   * `getTagsForOracleId`. Weight/annotation per-tagging aren't kept; nothing
+   * uses them yet.
+   */
+  taggingOracleIds: string[]
 }
 
 /** A dataset snapshot plus the metadata needed to reason about its freshness. */

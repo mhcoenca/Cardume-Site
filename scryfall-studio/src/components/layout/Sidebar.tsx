@@ -3,8 +3,9 @@ import { listQueryClausesByCategory, searchQueryClauses } from '@/clauses/regist
 import type { AnyQueryClause } from '@/clauses/types'
 import { ClauseSelector } from '@/components/clauses/ClauseSelector'
 import { SearchBox } from '@/components/shared/SearchBox'
-import { WorkspacePanel } from '@/components/workspace/WorkspacePanel'
 import { useQueryStore } from '@/store/useQueryStore'
+import { OpenQueryButton } from './OpenQueryButton'
+import { SidebarFooter } from './SidebarFooter'
 
 function groupByCategory(clauses: AnyQueryClause[]): Map<string, AnyQueryClause[]> {
   const grouped = new Map<string, AnyQueryClause[]>()
@@ -26,26 +27,30 @@ export function Sidebar() {
   )
 
   return (
-    <div className="flex flex-col gap-4 p-3">
-      <SearchBox value={search} onChange={setSearch} placeholder="Search clauses…" />
-      {Array.from(grouped.entries()).map(([category, clauses]) =>
-        clauses.length ? (
-          <div key={category}>
-            <h3 className="px-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {category}
-            </h3>
-            <div className="flex flex-col">
-              {clauses.map((clause) => (
-                <ClauseSelector key={clause.id} clause={clause} onSelect={addClause} />
-              ))}
+    <div className="flex h-full flex-col">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+        <SearchBox value={search} onChange={setSearch} placeholder="Search clauses…" />
+        {Array.from(grouped.entries()).map(([category, clauses]) =>
+          clauses.length ? (
+            <div key={category}>
+              <h3 className="px-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {category}
+              </h3>
+              <div className="flex flex-col">
+                {clauses.map((clause) => (
+                  <ClauseSelector key={clause.id} clause={clause} onSelect={addClause} />
+                ))}
+              </div>
             </div>
-          </div>
-        ) : null,
-      )}
+          ) : null,
+        )}
 
-      <div className="-mx-3 mt-2 border-t border-border">
-        <WorkspacePanel />
+        <div className="mt-2 border-t border-border pt-3">
+          <OpenQueryButton />
+        </div>
       </div>
+
+      <SidebarFooter />
     </div>
   )
 }

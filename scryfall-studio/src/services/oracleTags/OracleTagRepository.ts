@@ -12,6 +12,7 @@ export class OracleTagRepository {
   private readonly bySlug = new Map<string, OracleTag>()
   private readonly descendantsById = new Map<string, OracleTag[]>()
   private readonly ancestorsById = new Map<string, OracleTag[]>()
+  private readonly tagsByOracleId = new Map<string, OracleTag[]>()
   private readonly roots: OracleTag[]
 
   constructor(dataset: OracleTagDataset) {
@@ -24,6 +25,11 @@ export class OracleTagRepository {
     for (const tag of dataset.tags) {
       this.descendantsById.set(tag.id, this.closure(tag.id, (t) => t.childIds))
       this.ancestorsById.set(tag.id, this.closure(tag.id, (t) => t.parentIds))
+      for (const oracleId of tag.taggingOracleIds) {
+        const list = this.tagsByOracleId.get(oracleId)
+        if (list) list.push(tag)
+        else this.tagsByOracleId.set(oracleId, [tag])
+      }
     }
     this.roots = dataset.tags
       .filter((tag) => tag.parentIds.length === 0)
@@ -86,5 +92,10 @@ export class OracleTagRepository {
   /** Tags with no parent — the entry points into the hierarchy, alphabetical. */
   getRoots(): OracleTag[] {
     return this.roots
+  }
+
+  /** Every tag directly applied to a card, by its oracle_id — the reverse of a tagging. */
+  getTagsForOracleId(oracleId: string): OracleTag[] {
+    return this.tagsByOracleId.get(oracleId) ?? []
   }
 }

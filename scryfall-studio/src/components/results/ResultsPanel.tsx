@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCardSearch } from '@/hooks/useCardSearch'
+import { useQueryStore } from '@/store/useQueryStore'
 import { CardThumbnail } from './CardThumbnail'
+import { ResultsActionBar } from './ResultsActionBar'
 
 interface ResultsPanelProps {
   query: string
@@ -9,11 +12,45 @@ interface ResultsPanelProps {
   params?: Record<string, string>
 }
 
+const MIN_THUMBNAIL_SIZE = 110
+const MAX_THUMBNAIL_SIZE = 230
+const DEFAULT_THUMBNAIL_SIZE = 160
+
 export function ResultsPanel({ query, params }: ResultsPanelProps) {
   const { cards, totalCards, loading, loadingMore, error, hasMore, loadMore } = useCardSearch(
     query,
     params,
   )
+  const { sort, setSort } = useQueryStore()
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [thumbnailSize, setThumbnailSize] = useState(DEFAULT_THUMBNAIL_SIZE)
+
+  // A new query invalidates any selection made against the previous results;
+  // "Load more" appending to the same query's results should not.
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [query])
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => (prev.size === cards.length ? new Set() : new Set(cards.map((c) => c.id))))
+  }
+
+  async function copySelected() {
+    const text = cards
+      .filter((card) => selectedIds.has(card.id))
+      .map((card) => `1 ${card.name}`)
+      .join('\n')
+    await navigator.clipboard.writeText(text)
+  }
 
   if (!query.trim()) return null
 
@@ -45,11 +82,33 @@ export function ResultsPanel({ query, params }: ResultsPanelProps) {
 
       {cards.length > 0 && (
         <>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+          <ResultsActionBar
+            totalSelectable={cards.length}
+            selectedCount={selectedIds.size}
+            onToggleSelectAll={toggleSelectAll}
+            onCopySelected={copySelected}
+            size={thumbnailSize}
+            onSizeChange={setThumbnailSize}
+            minSize={MIN_THUMBNAIL_SIZE}
+            maxSize={MAX_THUMBNAIL_SIZE}
+            sort={sort}
+            onSortChange={setSort}
+          />
+
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize}px, 1fr))` }}
+          >
             {cards.map((card) => (
-              <CardThumbnail key={card.id} card={card} />
+              <CardThumbnail
+                key={card.id}
+                card={card}
+                selected={selectedIds.has(card.id)}
+                onToggleSelect={() => toggleSelect(card.id)}
+              />
             ))}
           </div>
+
           {hasMore && (
             <Button
               variant="outline"

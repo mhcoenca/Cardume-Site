@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Download, ExternalLink, Sparkles, X } from 'lucide-react'
+import { Download, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useQueryStore } from '@/store/useQueryStore'
+import { CardumeLogo } from './CardumeLogo'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Toolbar() {
   const { hasImport, importUrl, clearImport } = useQueryStore()
@@ -20,13 +22,8 @@ export function Toolbar() {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-2">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold whitespace-nowrap text-foreground">
-          Scryfall Studio
-        </span>
-      </div>
+    <div className="flex items-center justify-between gap-4 px-6 py-4">
+      <CardumeLogo className="h-6 w-auto shrink-0 text-foreground" />
 
       <div className="flex w-full max-w-xl flex-col gap-1">
         {hasImport ? (
@@ -64,15 +61,7 @@ export function Toolbar() {
         {error && <p className="text-[11px] text-destructive">{error}</p>}
       </div>
 
-      <a
-        href="https://scryfall.com"
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
-      >
-        scryfall.com
-        <ExternalLink className="h-3 w-3" />
-      </a>
+      <ThemeToggle />
     </div>
   )
 }

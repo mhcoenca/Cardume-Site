@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react'
 import { getQueryClause } from '@/clauses/registry'
 import { buildScryfallUrl, parseScryfallUrl } from '@/lib/scryfallUrl'
+import { DEFAULT_SORT, sortToUrlParams, type SortValue } from '@/lib/sortOptions'
 import { buildQuery } from '@/query/buildQuery'
 import { buildUrlParams } from '@/query/buildUrlParams'
 import { parseQuery } from '@/query/parseQuery'
@@ -13,6 +14,8 @@ interface QueryState {
   /** The portion of the (possibly imported) query no registered clause recognized. */
   baseQuery: string
   importedParams: URLSearchParams | null
+  /** Not a clause — never affects `q`, only the result URL/fetch. Fixed control on the Results bar. */
+  sort: SortValue
 }
 
 type QueryAction =
@@ -28,12 +31,14 @@ type QueryAction =
       params: URLSearchParams
     }
   | { type: 'CLEAR_IMPORT' }
+  | { type: 'SET_SORT'; sort: SortValue }
 
 const initialState: QueryState = {
   instances: [],
   importedQuery: null,
   baseQuery: '',
   importedParams: null,
+  sort: DEFAULT_SORT,
 }
 
 function queryReducer(state: QueryState, action: QueryAction): QueryState {
@@ -79,6 +84,8 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
       }
     case 'CLEAR_IMPORT':
       return { ...state, importedQuery: null, baseQuery: '', importedParams: null }
+    case 'SET_SORT':
+      return { ...state, sort: action.sort }
     default:
       return state
   }
@@ -91,14 +98,16 @@ interface QueryStoreValue {
   hasImport: boolean
   /** The full query: unrecognized imported portion + every clause's toQuery(). */
   query: string
-  /** The final Scryfall search URL: query + imported params + any clause-driven params (Sort, Display…). */
+  /** The final Scryfall search URL: query + imported params + clause-driven params + Sort. */
   url: string
   /**
-   * Same params baked into `url` (imported + clause-driven, e.g. Sort's
-   * `order`), minus `q` — for the in-app Results fetch, which otherwise has
-   * no way to know about params clauses like Sort contribute.
+   * Same params baked into `url` (imported + clause-driven + Sort), minus
+   * `q` — for the in-app Results fetch, which otherwise has no way to know
+   * about params like Sort's `order`/`dir`.
    */
   resultParams: Record<string, string>
+  sort: SortValue
+  setSort: (sort: SortValue) => void
   addClause: (clauseId: string) => void
   removeInstance: (instanceId: string) => void
   updateInstanceValue: (instanceId: string, value: unknown) => void
@@ -125,6 +134,9 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
     for (const [key, val] of Object.entries(buildUrlParams(state.instances))) {
       mergedParams.set(key, val)
     }
+    for (const [key, val] of Object.entries(sortToUrlParams(state.sort))) {
+      mergedParams.set(key, val)
+    }
 
     return {
       instances: state.instances,
@@ -133,6 +145,8 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       query,
       url: buildScryfallUrl(query, mergedParams),
       resultParams: Object.fromEntries(mergedParams.entries()),
+      sort: state.sort,
+      setSort: (sort) => dispatch({ type: 'SET_SORT', sort }),
       addClause: (clauseId) => dispatch({ type: 'ADD_CLAUSE', clauseId }),
       removeInstance: (instanceId) => dispatch({ type: 'REMOVE_INSTANCE', instanceId }),
       updateInstanceValue: (instanceId, value) =>

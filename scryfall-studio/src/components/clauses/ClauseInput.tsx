@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
+import { ReverseOracleTagInput } from '@/components/oracle-tags/ReverseOracleTagInput'
 import { ToggleButtonGroup } from './ToggleButtonGroup'
 import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
@@ -17,6 +18,7 @@ import {
   LEGALITY_STATUSES,
   type LegalityValue,
 } from '@/clauses/plugins/legality'
+import type { ReverseOracleTagValue } from '@/clauses/plugins/reverse-oracle-tag'
 import type { AnyQueryClause } from '@/clauses/types'
 import type { OracleTagValue } from '@/services/oracleTags/types'
 
@@ -60,6 +62,14 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             ))}
           </SelectContent>
         </Select>
+      )
+
+    case 'reverse-oracle-tag':
+      return (
+        <ReverseOracleTagInput
+          value={value as ReverseOracleTagValue}
+          onChange={onChange}
+        />
       )
 
     case 'type-line':

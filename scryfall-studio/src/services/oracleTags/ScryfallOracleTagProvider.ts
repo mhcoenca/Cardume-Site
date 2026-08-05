@@ -17,7 +17,7 @@ interface ScryfallTagRecord {
   parent_ids: string[]
   child_ids: string[]
   aliases: string[]
-  taggings: unknown[]
+  taggings: { oracle_id: string }[]
 }
 
 /**
@@ -61,6 +61,7 @@ export async function fetchOracleTagDataset(): Promise<OracleTagDataset> {
       childIds: record.child_ids,
       uri: record.uri,
       taggingCount: record.taggings.length,
+      taggingOracleIds: record.taggings.map((t) => t.oracle_id),
     })
   }
 

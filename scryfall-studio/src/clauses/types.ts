@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 export type QueryClauseInputType =
   | 'text'
   | 'oracle-tag'
+  | 'reverse-oracle-tag'
   | 'type-line'
   | 'multi-select'
   | 'color-operator-multiselect'
@@ -45,8 +46,8 @@ export interface QueryClause<TValue = unknown> {
   /** Serializes the clause's current value into its Scryfall query (`q`) fragment. */
   toQuery: (value: TValue) => string
   /**
-   * For clauses whose effect is a URL param rather than a query fragment
-   * (e.g. Sort -> `order=`, Display -> `as=`). Most clauses don't need this.
+   * For clauses whose effect is a URL param rather than a query fragment.
+   * Most clauses don't need this.
    */
   toUrlParams?: (value: TValue) => Record<string, string>
   /**

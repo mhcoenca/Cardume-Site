@@ -51,7 +51,10 @@ export function useCardSearch(query: string, params: Record<string, string> = {}
     const timeout = setTimeout(() => {
       const controller = new AbortController()
       abortRef.current = controller
-      setState((s) => ({ ...s, loading: true, error: null }))
+      // Clear previous results up front — the preview should always reflect
+      // the current query, never a stale card grid left over from before it
+      // changed (e.g. while loading, or if the new query matches nothing).
+      setState({ ...EMPTY_STATE, loading: true })
 
       searchCards(trimmed, JSON.parse(paramsKey), controller.signal)
         .then((result) => {
@@ -67,7 +70,7 @@ export function useCardSearch(query: string, params: Record<string, string> = {}
         })
         .catch((error: unknown) => {
           if (isAbortError(error)) return
-          setState((s) => ({ ...s, loading: false, error: error as CardSearchError }))
+          setState({ ...EMPTY_STATE, loading: false, error: error as CardSearchError })
         })
     }, DEBOUNCE_MS)
 
