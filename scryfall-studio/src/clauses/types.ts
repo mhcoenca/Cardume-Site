@@ -8,6 +8,7 @@ export type QueryClauseInputType =
   | 'multi-select'
   | 'color-operator-multiselect'
   | 'operator-number'
+  | 'price'
   | 'legality'
   | 'checkbox'
   | 'select'

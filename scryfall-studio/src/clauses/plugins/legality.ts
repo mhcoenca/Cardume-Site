@@ -55,7 +55,7 @@ export const legalityClause: QueryClause<LegalityValue> = {
   id: 'legality',
   label: 'Legality',
   description: "Filter by a card's legal status in a specific format.",
-  category: 'Formats',
+  category: 'Collecting',
   icon: ShieldCheck,
   operator: 'legal',
   inputType: 'legality',

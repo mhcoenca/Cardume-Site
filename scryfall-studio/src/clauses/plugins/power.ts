@@ -5,7 +5,7 @@ export const powerClause = createOperatorNumberClause({
   id: 'power',
   label: 'Power',
   description: "Filter by a creature's power.",
-  category: 'Power / Toughness',
+  category: 'Type & Stats',
   icon: Swords,
   operator: 'pow',
   metadata: {

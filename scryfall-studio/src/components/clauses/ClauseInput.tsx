@@ -18,6 +18,7 @@ import {
   LEGALITY_STATUSES,
   type LegalityValue,
 } from '@/clauses/plugins/legality'
+import { PRICE_CURRENCIES, type PriceValue } from '@/clauses/plugins/price'
 import type { ReverseOracleTagValue } from '@/clauses/plugins/reverse-oracle-tag'
 import type { AnyQueryClause } from '@/clauses/types'
 import type { OracleTagValue } from '@/services/oracleTags/types'
@@ -155,6 +156,58 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             onChange={(event) =>
               onChange({
                 ...numberValue,
+                value: event.target.value === '' ? null : Number(event.target.value),
+              })
+            }
+            className="flex-1"
+          />
+        </div>
+      )
+    }
+
+    case 'price': {
+      const priceValue = value as PriceValue
+      return (
+        <div className="flex items-center gap-2">
+          <Select
+            items={PRICE_CURRENCIES}
+            value={priceValue.currency}
+            onValueChange={(currency) => onChange({ ...priceValue, currency })}
+          >
+            <SelectTrigger className="w-28 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PRICE_CURRENCIES.map((currency) => (
+                <SelectItem key={currency.value} value={currency.value}>
+                  {currency.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            items={COMPARISON_OPERATORS}
+            value={priceValue.operator}
+            onValueChange={(operator) => onChange({ ...priceValue, operator })}
+          >
+            <SelectTrigger className="w-44 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPARISON_OPERATORS.map((op) => (
+                <SelectItem key={op.value} value={op.value}>
+                  {op.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            value={priceValue.value ?? ''}
+            placeholder={clause.metadata?.placeholder}
+            onChange={(event) =>
+              onChange({
+                ...priceValue,
                 value: event.target.value === '' ? null : Number(event.target.value),
               })
             }

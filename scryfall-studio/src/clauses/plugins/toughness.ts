@@ -5,7 +5,7 @@ export const toughnessClause = createOperatorNumberClause({
   id: 'toughness',
   label: 'Toughness',
   description: "Filter by a creature's toughness.",
-  category: 'Power / Toughness',
+  category: 'Type & Stats',
   icon: Shield,
   operator: 'tou',
   metadata: {

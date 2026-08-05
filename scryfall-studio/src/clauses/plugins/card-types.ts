@@ -13,7 +13,7 @@ export const cardTypesClause: QueryClause<string[]> = {
   id: 'type-line',
   label: 'Type Line',
   description: 'Match cards with all of the selected types, subtypes, and supertypes.',
-  category: 'Types',
+  category: 'Type & Stats',
   icon: Shapes,
   operator: 't',
   inputType: 'type-line',
