@@ -28,15 +28,14 @@ export function SidebarFooter() {
         </a>
       </p>
 
-      {/* TODO: swap in the real Ko-fi handle once the account exists. */}
       <p className="text-center text-[11px] text-muted-foreground">
         <a
-          href="https://ko-fi.com/PLACEHOLDER"
+          href="https://ko-fi.com/marcelocoenca"
           target="_blank"
           rel="noreferrer"
           className="underline hover:text-foreground"
         >
-          Buy me a coffee
+          Donate
         </a>
       </p>
     </div>
