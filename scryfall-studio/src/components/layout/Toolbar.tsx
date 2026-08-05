@@ -90,7 +90,7 @@ export function Toolbar({ onOpenSidebar }: ToolbarProps) {
         <CardumeLogo className="h-6 w-auto shrink-0 text-foreground" />
       </div>
 
-      <div className="ml-auto flex items-center gap-3 lg:gap-4">
+      <div className="flex flex-1 items-center justify-end gap-3 lg:gap-4">
         {isDesktop ? (
           <div className="w-full max-w-xl">{importForm}</div>
         ) : (

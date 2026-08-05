@@ -1,4 +1,3 @@
-import { ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function SidebarFooter() {
@@ -6,7 +5,6 @@ export function SidebarFooter() {
     <div className="flex flex-col gap-3 border-t border-border p-5">
       <Button variant="outline" className="w-full" nativeButton={false} render={<a href="/" />}>
         Check out the Cardume app
-        <ArrowUpRight className="h-3.5 w-3.5" />
       </Button>
 
       <p className="text-center text-[11px] text-muted-foreground">
@@ -27,6 +25,18 @@ export function SidebarFooter() {
           className="underline hover:text-foreground"
         >
           Scryfall team
+        </a>
+      </p>
+
+      {/* TODO: swap in the real Ko-fi handle once the account exists. */}
+      <p className="text-center text-[11px] text-muted-foreground">
+        <a
+          href="https://ko-fi.com/PLACEHOLDER"
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-foreground"
+        >
+          Buy me a coffee
         </a>
       </p>
     </div>
