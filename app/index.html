@@ -48,6 +48,15 @@
       text-decoration: none; transition: opacity .2s;
     }
     .nav-cta:hover { opacity: .85; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-cta-outline {
+      background: transparent; color: var(--text);
+      font-weight: 700; font-size: 14px;
+      padding: 8px 20px; border-radius: 100px;
+      border: 1px solid var(--border);
+      text-decoration: none; transition: border-color .2s, color .2s;
+    }
+    .nav-cta-outline:hover { border-color: var(--brand); color: var(--brand); }
 
     /* ── HERO ────────────────────────────────────────────────────────── */
     .hero {
@@ -146,6 +155,17 @@
     }
     .cta-band p { color: var(--text-muted); margin-bottom: 32px; font-size: 16px; }
 
+    /* ── TOOL BAND (link para o Scryfall Studio) ────────────────────── */
+    .tool-band {
+      max-width: 720px; margin: 0 auto; padding: 64px 24px;
+      text-align: center; border-top: 1px solid var(--border);
+    }
+    .tool-title {
+      font-size: clamp(20px, 3vw, 28px); font-weight: 800;
+      letter-spacing: -.02em; margin-bottom: 12px;
+    }
+    .tool-copy { color: var(--text-muted); font-size: 15px; margin-bottom: 28px; }
+
     /* ── FOOTER ──────────────────────────────────────────────────────── */
     footer {
       max-width: 960px; margin: 0 auto; padding: 40px 24px;
@@ -171,9 +191,10 @@
     }
     .copy-email.copied::after { opacity: 1; }
 
-    .hero-logo { height: 144px; margin: 0 auto 28px; display: block; }
+    .hero-logo { height: 144px; max-width: 100%; margin: 0 auto 28px; display: block; }
 
     @media (max-width: 600px) {
+      .nav-cta-outline { display: none; }
       .hero { padding: 48px 20px 40px; }
       .hero-logo { height: 88px; margin-bottom: 20px; }
       .hero h1 { font-size: clamp(28px, 8vw, 40px); }
@@ -181,6 +202,7 @@
       .hero-actions { gap: 12px; margin-bottom: 40px; }
       .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
       .features { padding: 56px 20px; }
+      .tool-band { padding: 48px 20px; }
     }
   </style>
 </head>
@@ -188,13 +210,16 @@
 
   <!-- NAV -->
   <nav>
-    <img class="nav-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
-    <a class="nav-cta" href="#download">Baixar app</a>
+    <img class="nav-logo" src="/assets/horizontal.svg" alt="Cardume TCG" />
+    <div class="nav-actions">
+      <a class="nav-cta-outline" href="/">Buscar cartas</a>
+      <a class="nav-cta" href="#download">Baixar app</a>
+    </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <img class="hero-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
+    <img class="hero-logo" src="/assets/horizontal.svg" alt="Cardume TCG" />
     <div class="hero-badge">Disponível para iOS e Android</div>
     <h1>Organize suas <span>trocas e compras</span> de cartinhas em grupo</h1>
     <p>Trocas, pedidos coletivos e cupons para quem leva as cartinhas a sério. Chega de bagunça no WhatsApp.</p>
@@ -264,7 +289,7 @@
 
   <!-- ILLUSTRATION -->
   <div class="illustration-section">
-    <img src="assets/vertical.svg" alt="Cardume TCG" style="width:280px;height:auto;" />
+    <img src="/assets/vertical.svg" alt="Cardume TCG" style="width:280px;height:auto;" />
   </div>
 
   <!-- CTA BAND -->
@@ -283,9 +308,19 @@
     </div>
   </section>
 
+  <!-- TOOL BAND -->
+  <section class="tool-band">
+    <p class="section-label">Ferramenta bônus</p>
+    <h2 class="tool-title">Procurando uma carta de Magic específica?</h2>
+    <p class="tool-copy">Criamos o Scryfall Studio — um construtor visual de buscas avançadas pra Magic: The Gathering. Monte filtros complexos sem decorar sintaxe, com resultados reais em tempo real. Gratuito, sem cadastro.</p>
+    <a class="btn-secondary" href="/" style="display:inline-flex;">
+      Abrir Scryfall Studio
+    </a>
+  </section>
+
   <!-- FOOTER -->
   <footer>
-    <img class="footer-logo" src="assets/horizontal.svg" alt="Cardume TCG" />
+    <img class="footer-logo" src="/assets/horizontal.svg" alt="Cardume TCG" />
     <div class="footer-links">
       <a href="/privacy">Política de Privacidade</a>
       <a href="mailto:contato@card-u.me">Suporte</a>
