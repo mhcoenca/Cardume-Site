@@ -54,7 +54,7 @@ export function OracleTagBrowserModal({ open, onOpenChange, onSelect }: OracleTa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="flex h-[calc(100dvh-4rem)] flex-col sm:h-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Browse Oracle Tags</DialogTitle>
           <DialogDescription>
@@ -75,7 +75,7 @@ export function OracleTagBrowserModal({ open, onOpenChange, onSelect }: OracleTa
           />
         </div>
 
-        <div className="max-h-[28rem] overflow-y-auto rounded-md border border-border p-1">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border p-1 sm:max-h-[28rem] sm:flex-none">
           {error ? (
             <p className="p-3 text-xs text-destructive">{error}</p>
           ) : loading ? (

@@ -1,15 +1,14 @@
 import { Star } from 'lucide-react'
 import type { QueryClause } from '../types'
 
-// r:common, r:uncommon, r:rare, r:special, r:mythic, r:bonus — confirmed
-// against api.scryfall.com/cards/search for each value.
+// r:common, r:uncommon, r:rare, r:mythic — confirmed against
+// api.scryfall.com/cards/search for each value. r:special and r:bonus are
+// real but excluded here — niche print rarities not worth the clutter.
 const RARITIES = [
   { value: 'common', label: 'Common' },
   { value: 'uncommon', label: 'Uncommon' },
   { value: 'rare', label: 'Rare' },
-  { value: 'special', label: 'Special' },
   { value: 'mythic', label: 'Mythic' },
-  { value: 'bonus', label: 'Bonus' },
 ]
 
 const TOKEN_PATTERN = /^r:(\w+)$/i
@@ -39,7 +38,7 @@ export const rarityClause: QueryClause<string[]> = {
     return KNOWN_VALUES.has(rarity) ? [rarity] : null
   },
   metadata: {
-    keywords: ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'],
+    keywords: ['common', 'uncommon', 'rare', 'mythic'],
     examples: ['r:mythic', '(r:rare or r:mythic)'],
     docsUrl: 'https://scryfall.com/docs/syntax#rarity',
   },

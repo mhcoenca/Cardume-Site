@@ -13,6 +13,7 @@ import { rarityClause } from './rarity'
 import { setClause } from './set'
 import { priceClause } from './price'
 import { legalityClause } from './legality'
+import { criteriaClause } from './criteria'
 import { artistClause } from './artist'
 import { flavorTextClause } from './flavor-text'
 import { loreFinderClause } from './lore-finder'
@@ -26,11 +27,13 @@ import { loreFinderClause } from './lore-finder'
 // on the Results action bar (see src/lib/sortOptions.ts) and Display was
 // dropped outright (unused in practice).
 //
-// Category taxonomy: Rarity, Set, Price, and Legality were each their own
-// single-clause sidebar category — merged into "Collecting", since all four
-// describe a card's real-world printing/availability (what edition, how
-// rare, what it costs, where it's legal) rather than its rules identity.
-// Type Line similarly merged into "Type & Stats" alongside Power/Toughness.
+// Category taxonomy: Rarity, Set, Price, Legality, and Criteria were each
+// (or would have been, for Criteria) their own single-clause sidebar
+// category — merged into "Collecting", since all five describe a card's
+// real-world printing/availability (what edition, how rare, what it costs,
+// where it's legal, promo/foil/frame attributes) rather than its rules
+// identity. Type Line similarly merged into "Type & Stats" alongside
+// Power/Toughness.
 
 registerQueryClause(oracleTextClause)
 registerQueryClause(oracleTagClause)
@@ -46,6 +49,7 @@ registerQueryClause(rarityClause)
 registerQueryClause(setClause)
 registerQueryClause(priceClause)
 registerQueryClause(legalityClause)
+registerQueryClause(criteriaClause)
 registerQueryClause(artistClause)
 registerQueryClause(flavorTextClause)
 registerQueryClause(loreFinderClause)

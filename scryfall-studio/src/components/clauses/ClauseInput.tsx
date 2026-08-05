@@ -9,10 +9,13 @@ import {
 } from '@/components/ui/select'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
 import { ReverseOracleTagInput } from '@/components/oracle-tags/ReverseOracleTagInput'
+import { CriteriaInput } from './CriteriaInput'
+import { ManaCostInput } from './ManaCostInput'
 import { ToggleButtonGroup } from './ToggleButtonGroup'
 import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
 import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
+import type { CriteriaValue } from '@/clauses/plugins/criteria'
 import {
   FORMAT_OPTIONS,
   LEGALITY_STATUSES,
@@ -76,6 +79,12 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
     case 'type-line':
       return <TypeLineInput value={(value as string[]) ?? []} onChange={onChange} />
 
+    case 'mana-cost':
+      return <ManaCostInput value={(value as string) ?? ''} onChange={onChange} />
+
+    case 'criteria':
+      return <CriteriaInput value={value as CriteriaValue} onChange={onChange} />
+
     case 'multi-select': {
       const selected = (value as string[]) ?? []
       return (
@@ -132,13 +141,13 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
     case 'operator-number': {
       const numberValue = value as OperatorNumberValue
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select
             items={COMPARISON_OPERATORS}
             value={numberValue.operator}
             onValueChange={(operator) => onChange({ ...numberValue, operator })}
           >
-            <SelectTrigger className="w-56 shrink-0">
+            <SelectTrigger className="w-full sm:w-56 sm:shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -168,13 +177,13 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
     case 'price': {
       const priceValue = value as PriceValue
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select
             items={PRICE_CURRENCIES}
             value={priceValue.currency}
             onValueChange={(currency) => onChange({ ...priceValue, currency })}
           >
-            <SelectTrigger className="w-28 shrink-0">
+            <SelectTrigger className="w-full sm:w-28 sm:shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -190,7 +199,7 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             value={priceValue.operator}
             onValueChange={(operator) => onChange({ ...priceValue, operator })}
           >
-            <SelectTrigger className="w-44 shrink-0">
+            <SelectTrigger className="w-full sm:w-44 sm:shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -220,13 +229,13 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
     case 'legality': {
       const legalityValue = value as LegalityValue
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select
             items={LEGALITY_STATUSES}
             value={legalityValue.status}
             onValueChange={(status) => onChange({ ...legalityValue, status })}
           >
-            <SelectTrigger className="w-36 shrink-0">
+            <SelectTrigger className="w-full sm:w-36 sm:shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -242,7 +251,7 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             value={legalityValue.format}
             onValueChange={(format) => onChange({ ...legalityValue, format })}
           >
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="w-full sm:flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

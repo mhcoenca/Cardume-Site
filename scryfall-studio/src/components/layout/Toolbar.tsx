@@ -1,15 +1,30 @@
 import { useState } from 'react'
-import { Download, X } from 'lucide-react'
+import { Download, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useQueryStore } from '@/store/useQueryStore'
 import { CardumeLogo } from './CardumeLogo'
 import { ThemeToggle } from './ThemeToggle'
 
-export function Toolbar() {
+interface ToolbarProps {
+  onOpenSidebar: () => void
+}
+
+export function Toolbar({ onOpenSidebar }: ToolbarProps) {
   const { hasImport, importUrl, clearImport } = useQueryStore()
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   function handleImport() {
     if (!value.trim()) return
@@ -19,49 +34,84 @@ export function Toolbar() {
     }
     setError(null)
     setValue('')
+    setImportDialogOpen(false)
   }
 
-  return (
-    <div className="flex items-center justify-between gap-4 px-6 py-4">
-      <CardumeLogo className="h-6 w-auto shrink-0 text-foreground" />
+  const importForm = (
+    <div className="flex flex-col gap-1">
+      {hasImport ? (
+        <div className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+          <span>Base query imported from Scryfall</span>
+          <button
+            type="button"
+            onClick={clearImport}
+            aria-label="Clear imported query"
+            className="text-foreground transition-colors hover:text-destructive"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <Input
+            value={value}
+            onChange={(event) => {
+              setValue(event.target.value)
+              setError(null)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') handleImport()
+            }}
+            placeholder="Paste a Scryfall search URL to import…"
+            className="h-8 text-xs"
+          />
+          <Button size="sm" variant="outline" onClick={handleImport} disabled={!value.trim()}>
+            <Download className="h-3.5 w-3.5" />
+            Import
+          </Button>
+        </div>
+      )}
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
+    </div>
+  )
 
-      <div className="flex w-full max-w-xl flex-col gap-1">
-        {hasImport ? (
-          <div className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
-            <span>Base query imported from Scryfall</span>
-            <button
-              type="button"
-              onClick={clearImport}
-              aria-label="Clear imported query"
-              className="text-foreground transition-colors hover:text-destructive"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Input
-              value={value}
-              onChange={(event) => {
-                setValue(event.target.value)
-                setError(null)
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') handleImport()
-              }}
-              placeholder="Paste a Scryfall search URL to import…"
-              className="h-8 text-xs"
-            />
-            <Button size="sm" variant="outline" onClick={handleImport} disabled={!value.trim()}>
-              <Download className="h-3.5 w-3.5" />
-              Import
-            </Button>
-          </div>
-        )}
-        {error && <p className="text-[11px] text-destructive">{error}</p>}
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 lg:gap-4 lg:px-6 lg:py-4">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="lg:hidden"
+          onClick={onOpenSidebar}
+          aria-label="Open filters"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+        <CardumeLogo className="h-6 w-auto shrink-0 text-foreground" />
       </div>
 
-      <ThemeToggle />
+      <div className="ml-auto flex items-center gap-3 lg:gap-4">
+        {isDesktop ? (
+          <div className="w-full max-w-xl">{importForm}</div>
+        ) : (
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger
+              render={<Button variant="outline" size="icon" aria-label="Import from Scryfall URL" />}
+            >
+              <Download className="h-4 w-4" />
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import from Scryfall</DialogTitle>
+                <DialogDescription>Paste a Scryfall search URL to import its query.</DialogDescription>
+              </DialogHeader>
+              {importForm}
+            </DialogContent>
+          </Dialog>
+        )}
+
+        <ThemeToggle />
+      </div>
     </div>
   )
 }

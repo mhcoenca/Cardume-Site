@@ -4,6 +4,7 @@ import type { AnyQueryClause } from '@/clauses/types'
 import { ClauseSelector } from '@/components/clauses/ClauseSelector'
 import { SearchBox } from '@/components/shared/SearchBox'
 import { useQueryStore } from '@/store/useQueryStore'
+import { AddAllFiltersButton } from './AddAllFiltersButton'
 import { OpenQueryButton } from './OpenQueryButton'
 import { SidebarFooter } from './SidebarFooter'
 
@@ -17,14 +18,24 @@ function groupByCategory(clauses: AnyQueryClause[]): Map<string, AnyQueryClause[
   return grouped
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  onSelectClause?: () => void
+}
+
+export function Sidebar({ onSelectClause }: SidebarProps) {
   const [search, setSearch] = useState('')
-  const { addClause } = useQueryStore()
+  const { instances, addClause } = useQueryStore()
 
   const grouped = useMemo(
     () => (search.trim() ? groupByCategory(searchQueryClauses(search)) : listQueryClausesByCategory()),
     [search],
   )
+  const addedIds = new Set(instances.map((instance) => instance.clauseId))
+
+  function handleSelect(clauseId: string) {
+    addClause(clauseId)
+    onSelectClause?.()
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -38,14 +49,20 @@ export function Sidebar() {
               </h3>
               <div className="flex flex-col">
                 {clauses.map((clause) => (
-                  <ClauseSelector key={clause.id} clause={clause} onSelect={addClause} />
+                  <ClauseSelector
+                    key={clause.id}
+                    clause={clause}
+                    onSelect={handleSelect}
+                    added={addedIds.has(clause.id)}
+                  />
                 ))}
               </div>
             </div>
           ) : null,
         )}
 
-        <div className="mt-2 border-t border-border pt-3">
+        <div className="mt-2 flex flex-col gap-2 border-t border-border py-5">
+          <AddAllFiltersButton onAdd={onSelectClause} />
           <OpenQueryButton />
         </div>
       </div>

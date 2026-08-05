@@ -36,12 +36,14 @@ function normalizeOperator(symbol: string): ColorOperator | null {
 }
 
 /**
- * Colors and Color Identity share this shape: a set of WUBRG(+Colorless)
- * toggles plus a comparison criterion. The criteria mirror Scryfall's own
- * Advanced Search dropdown ("Exactly" / "Including" / "At most") rather
- * than exposing raw comparison symbols the way Mana Value etc. do — colors
- * aren't ordered, so "less than" / "greater than" don't read as anything
- * meaningful to a user the way they do for a number.
+ * A set of WUBRG(+Colorless) toggles plus a comparison criterion. The
+ * criteria mirror Scryfall's own Advanced Search dropdown ("Exactly" /
+ * "Including" / "At most") rather than exposing raw comparison symbols the
+ * way Mana Value etc. do — colors aren't ordered, so "less than" /
+ * "greater than" don't read as anything meaningful to a user the way they
+ * do for a number. Color Identity does *not* use this factory — for
+ * Commander deckbuilding only "at most" is ever a meaningful question, so
+ * it always serializes as `id<=` with no operator control (see identity.ts).
  */
 export function createColorClause(config: ColorClauseConfig): QueryClause<ColorClauseValue> {
   const fragmentPrefix = new RegExp(`^${config.operator}(:|=|<=|>=|<|>)(.+)$`, 'i')
@@ -54,7 +56,7 @@ export function createColorClause(config: ColorClauseConfig): QueryClause<ColorC
     icon: config.icon,
     operator: config.operator,
     inputType: 'color-operator-multiselect',
-    options: COLOR_OPTIONS.map((c) => ({ value: c.code, label: c.label })),
+    options: COLOR_OPTIONS.map((c) => ({ value: c.code, label: c.label, iconUrl: c.iconUrl })),
     defaultValue: { colors: [], operator: '=' },
     toQuery: (value) => {
       if (!value.colors.length) return ''

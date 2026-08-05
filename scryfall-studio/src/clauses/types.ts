@@ -5,10 +5,12 @@ export type QueryClauseInputType =
   | 'oracle-tag'
   | 'reverse-oracle-tag'
   | 'type-line'
+  | 'mana-cost'
   | 'multi-select'
   | 'color-operator-multiselect'
   | 'operator-number'
   | 'price'
+  | 'criteria'
   | 'legality'
   | 'checkbox'
   | 'select'
@@ -31,6 +33,8 @@ export interface QueryClauseMetadata {
 export interface QueryClauseOption {
   value: string
   label: string
+  /** Optional icon shown before the label, e.g. official MTG mana symbols for colors. */
+  iconUrl?: string
 }
 
 export interface QueryClause<TValue = unknown> {

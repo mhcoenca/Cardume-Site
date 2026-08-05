@@ -19,12 +19,15 @@ export function ToggleButtonGroup({ options, selected, onToggle }: ToggleButtonG
             aria-pressed={isSelected}
             onClick={() => onToggle(option.value)}
             className={cn(
-              'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+              'flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
               isSelected
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border bg-transparent text-foreground hover:bg-accent',
             )}
           >
+            {option.iconUrl && (
+              <img src={option.iconUrl} alt="" aria-hidden="true" className="h-4 w-4 shrink-0" />
+            )}
             {option.label}
           </button>
         )

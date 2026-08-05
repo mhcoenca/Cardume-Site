@@ -13,7 +13,7 @@ export function OpenQueryButton() {
 
   if (hasQuery) {
     return (
-      <Button variant="outline" className="w-full" onClick={handleOpen}>
+      <Button variant="ghost" className="w-full" onClick={handleOpen}>
         <ExternalLink className="h-3.5 w-3.5" />
         Open Query in Scryfall
       </Button>
@@ -23,7 +23,7 @@ export function OpenQueryButton() {
   return (
     <Tooltip>
       <TooltipTrigger render={<span className="block w-full" />}>
-        <Button variant="outline" className="w-full" disabled>
+        <Button variant="ghost" className="w-full" disabled>
           <ExternalLink className="h-3.5 w-3.5" />
           Open Query in Scryfall
         </Button>

@@ -46,6 +46,9 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
     case 'ADD_CLAUSE': {
       const clause = getQueryClause(action.clauseId)
       if (!clause) return state
+      // Each clause type can only appear once — a second Flavor Text card,
+      // say, wouldn't mean anything the first one couldn't already express.
+      if (state.instances.some((i) => i.clauseId === action.clauseId)) return state
       const instance: QueryClauseInstance = {
         instanceId: crypto.randomUUID(),
         clauseId: clause.id,
