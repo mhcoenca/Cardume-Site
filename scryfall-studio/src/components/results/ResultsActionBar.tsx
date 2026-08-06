@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SegmentedToggle } from '@/components/clauses/SegmentedToggle'
+import { useToastManager } from '@/components/ui/toast'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { SORT_DIRECTIONS, SORT_OPTIONS, type SortValue } from '@/lib/sortOptions'
 
@@ -42,11 +43,20 @@ export function ResultsActionBar({
   const [copied, setCopied] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 640px)')
   const allSelected = totalSelectable > 0 && selectedCount === totalSelectable
+  const toastManager = useToastManager()
 
   function handleCopy() {
     onCopySelected()
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
+    toastManager.add({ title: `Copied ${selectedCount} card${selectedCount === 1 ? '' : 's'}` })
+  }
+
+  function handleSendToCopyboard() {
+    onSendToCopyboard()
+    toastManager.add({
+      title: `Sent ${selectedCount} card${selectedCount === 1 ? '' : 's'} to Copyboard`,
+    })
   }
 
   const selectionCountLabel = selectedCount > 0 ? `${selectedCount} selected` : 'None selected'
@@ -82,7 +92,7 @@ export function ResultsActionBar({
       size="sm"
       className={isDesktop ? undefined : 'flex-1'}
       disabled={selectedCount === 0}
-      onClick={onSendToCopyboard}
+      onClick={handleSendToCopyboard}
     >
       <SendToBack className="h-3.5 w-3.5" />
       Send to Copyboard
