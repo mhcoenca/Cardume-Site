@@ -7,7 +7,13 @@ import {
   type ScryfallCard,
 } from '@/services/scryfall/searchCards'
 
-const DEBOUNCE_MS = 500
+// Applies to every query change, not just typing — but a click/select isn't
+// sensitive to debounce length the way composing a multi-word phrase
+// (Oracle Text, Flavor Text, Lore Finder) is, so a global bump is the
+// simplest fix: gives more room to finish a phrase before an intermediate,
+// soon-to-change partial match re-renders the whole results grid, without
+// making clicks/selections feel meaningfully slower.
+const DEBOUNCE_MS = 800
 
 interface CardSearchState {
   cards: ScryfallCard[]
