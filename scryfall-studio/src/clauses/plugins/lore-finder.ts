@@ -1,5 +1,5 @@
 import { BookOpen } from 'lucide-react'
-import { formatTextOperand } from '@/lib/textOperand'
+import { formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 // lore: isn't in the main syntax reference (scryfall.com/docs/syntax) but is
@@ -17,7 +17,7 @@ export const loreFinderClause: QueryClause<string> = {
   operator: 'lore',
   inputType: 'text',
   defaultValue: '',
-  toQuery: (value) => (value.trim() ? `lore:${formatTextOperand(value)}` : ''),
+  toQuery: (value) => (value.trim() ? formatMultiWordClause('lore', value) : ''),
   fromQuery: (fragment) => {
     if (!fragment.toLowerCase().startsWith('lore:')) return null
     const operand = fragment.slice('lore:'.length)

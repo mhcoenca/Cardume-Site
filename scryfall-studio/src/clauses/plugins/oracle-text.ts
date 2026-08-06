@@ -1,17 +1,17 @@
 import { ScrollText } from 'lucide-react'
-import { formatTextOperand } from '@/lib/textOperand'
+import { formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 export const oracleTextClause: QueryClause<string> = {
   id: 'oracle-text',
   label: 'Oracle Text',
-  description: 'Match cards whose rules text contains the given phrase.',
+  description: 'Match cards whose rules text contains the given words or phrase.',
   category: 'Oracle',
   icon: ScrollText,
   operator: 'o',
   inputType: 'text',
   defaultValue: '',
-  toQuery: (value) => (value.trim() ? `o:${formatTextOperand(value)}` : ''),
+  toQuery: (value) => (value.trim() ? formatMultiWordClause('o', value) : ''),
   fromQuery: (fragment) => {
     if (!fragment.toLowerCase().startsWith('o:')) return null
     const operand = fragment.slice('o:'.length)

@@ -1,17 +1,17 @@
 import { Quote } from 'lucide-react'
-import { formatTextOperand } from '@/lib/textOperand'
+import { formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 export const flavorTextClause: QueryClause<string> = {
   id: 'flavor-text',
   label: 'Flavor Text',
-  description: "Match cards whose flavor text contains the given phrase.",
+  description: "Match cards whose flavor text contains the given words or phrase.",
   category: 'Flavor',
   icon: Quote,
   operator: 'ft',
   inputType: 'text',
   defaultValue: '',
-  toQuery: (value) => (value.trim() ? `ft:${formatTextOperand(value)}` : ''),
+  toQuery: (value) => (value.trim() ? formatMultiWordClause('ft', value) : ''),
   fromQuery: (fragment) => {
     if (!fragment.toLowerCase().startsWith('ft:')) return null
     const operand = fragment.slice('ft:'.length)
