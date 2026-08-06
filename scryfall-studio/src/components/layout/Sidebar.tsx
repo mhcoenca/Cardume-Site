@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { listQueryClausesByCategory, searchQueryClauses } from '@/clauses/registry'
+import { listQueryClauses, searchQueryClauses } from '@/clauses/registry'
 import type { AnyQueryClause } from '@/clauses/types'
 import { ClauseSelector } from '@/components/clauses/ClauseSelector'
 import { SearchBox } from '@/components/shared/SearchBox'
@@ -26,10 +26,12 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
   const [search, setSearch] = useState('')
   const { instances, addClause } = useQueryStore()
 
-  const grouped = useMemo(
-    () => (search.trim() ? groupByCategory(searchQueryClauses(search)) : listQueryClausesByCategory()),
-    [search],
-  )
+  const grouped = useMemo(() => {
+    const source = search.trim() ? searchQueryClauses(search) : listQueryClauses()
+    // Pinned clauses (Card Name) are always in the canvas already — they're
+    // not an optional filter to pick, so they don't belong in this list.
+    return groupByCategory(source.filter((clause) => !clause.pinned))
+  }, [search])
   const addedIds = new Set(instances.map((instance) => instance.clauseId))
 
   function handleSelect(clauseId: string) {

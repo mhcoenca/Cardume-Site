@@ -48,6 +48,12 @@ export interface QueryClause<TValue = unknown> {
   /** Static choices for 'select' and multi-select input types. */
   options?: QueryClauseOption[]
   defaultValue: TValue
+  /**
+   * Always present in the canvas, at the top, and can't be removed or
+   * reordered — for the one or two clauses so fundamental they aren't
+   * really "optional filters" (e.g. Card Name). Not offered in the sidebar.
+   */
+  pinned?: boolean
   /** Serializes the clause's current value into its Scryfall query (`q`) fragment. */
   toQuery: (value: TValue) => string
   /**

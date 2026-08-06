@@ -68,8 +68,8 @@ export function AddAllFiltersButton({ onAdd }: AddAllFiltersButtonProps) {
             <DialogHeader>
               <DialogTitle>Remove all filters?</DialogTitle>
               <DialogDescription>
-                Some of your filters have values entered. This removes every filter card and clears your
-                query.
+                Some of your filters have values entered. This removes every filter card except
+                Card Name, and clears the rest of your query.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

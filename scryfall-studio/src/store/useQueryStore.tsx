@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react'
-import { getQueryClause } from '@/clauses/registry'
+import { getQueryClause, listQueryClauses } from '@/clauses/registry'
 import { buildScryfallUrl, parseScryfallUrl } from '@/lib/scryfallUrl'
 import { DEFAULT_SORT, sortToUrlParams, type SortValue } from '@/lib/sortOptions'
 import { buildQuery } from '@/query/buildQuery'
@@ -33,12 +33,28 @@ type QueryAction =
   | { type: 'CLEAR_IMPORT' }
   | { type: 'SET_SORT'; sort: SortValue }
 
-const initialState: QueryState = {
-  instances: [],
-  importedQuery: null,
-  baseQuery: '',
-  importedParams: null,
-  sort: DEFAULT_SORT,
+// Pinned clauses (Card Name) are always present, so the canvas is seeded
+// with them rather than starting empty. Built lazily (as useReducer's third
+// arg) rather than at module load — this file can be reached before
+// `@/clauses/plugins`'s registration side effects have run, depending on
+// import order elsewhere, so the registry can't be trusted until a
+// component actually mounts.
+function createInitialState(): QueryState {
+  const pinnedInstances: QueryClauseInstance[] = listQueryClauses()
+    .filter((clause) => clause.pinned)
+    .map((clause) => ({
+      instanceId: crypto.randomUUID(),
+      clauseId: clause.id,
+      value: clause.defaultValue,
+    }))
+
+  return {
+    instances: pinnedInstances,
+    importedQuery: null,
+    baseQuery: '',
+    importedParams: null,
+    sort: DEFAULT_SORT,
+  }
 }
 
 function queryReducer(state: QueryState, action: QueryAction): QueryState {
@@ -56,11 +72,17 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
       }
       return { ...state, instances: [...state.instances, instance] }
     }
-    case 'REMOVE_INSTANCE':
+    case 'REMOVE_INSTANCE': {
+      const instance = state.instances.find((i) => i.instanceId === action.instanceId)
+      if (!instance) return state
+      // Pinned clauses (Card Name) can't be removed — same rule enforced
+      // here as in the UI, since this is the actual source of truth.
+      if (getQueryClause(instance.clauseId)?.pinned) return state
       return {
         ...state,
         instances: state.instances.filter((i) => i.instanceId !== action.instanceId),
       }
+    }
     case 'UPDATE_VALUE':
       return {
         ...state,
@@ -71,20 +93,45 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
     case 'MOVE_INSTANCE': {
       const index = state.instances.findIndex((i) => i.instanceId === action.instanceId)
       if (index === -1) return state
+      // A pinned clause can't move, and nothing can swap into its slot.
+      if (getQueryClause(state.instances[index].clauseId)?.pinned) return state
       const targetIndex = action.direction === 'up' ? index - 1 : index + 1
       if (targetIndex < 0 || targetIndex >= state.instances.length) return state
+      if (getQueryClause(state.instances[targetIndex].clauseId)?.pinned) return state
       const instances = [...state.instances]
       ;[instances[index], instances[targetIndex]] = [instances[targetIndex], instances[index]]
       return { ...state, instances }
     }
-    case 'IMPORT_URL':
+    case 'IMPORT_URL': {
+      // Merge by clauseId instead of blindly prepending: a pinned clause
+      // (Card Name) is always already present, so a naive prepend would
+      // duplicate it whenever an imported URL also has a name: fragment.
+      // Applies the same merge to every clause for consistency, not just
+      // pinned ones — re-importing a URL that repeats an already-added
+      // clause now updates it in place rather than duplicating it either.
+      const instances = [...state.instances]
+      const newInstances: QueryClauseInstance[] = []
+      for (const recognized of action.recognizedInstances) {
+        const existingIndex = instances.findIndex((i) => i.clauseId === recognized.clauseId)
+        if (existingIndex === -1) {
+          newInstances.push(recognized)
+        } else {
+          instances[existingIndex] = { ...instances[existingIndex], value: recognized.value }
+        }
+      }
+      // New clauses surface near the top, same as before, but never ahead
+      // of pinned ones.
+      const firstUnpinnedIndex = instances.findIndex((i) => !getQueryClause(i.clauseId)?.pinned)
+      const insertAt = firstUnpinnedIndex === -1 ? instances.length : firstUnpinnedIndex
+      instances.splice(insertAt, 0, ...newInstances)
       return {
         ...state,
         importedQuery: action.importedQuery,
         baseQuery: action.residual,
         importedParams: action.params,
-        instances: [...action.recognizedInstances, ...state.instances],
+        instances,
       }
+    }
     case 'CLEAR_IMPORT':
       return { ...state, importedQuery: null, baseQuery: '', importedParams: null }
     case 'SET_SORT':
@@ -127,7 +174,7 @@ interface QueryStoreValue {
 const QueryStoreContext = createContext<QueryStoreValue | null>(null)
 
 export function QueryStoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(queryReducer, initialState)
+  const [state, dispatch] = useReducer(queryReducer, undefined, createInitialState)
 
   const value = useMemo<QueryStoreValue>(() => {
     const additions = buildQuery(state.instances)

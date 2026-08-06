@@ -1,4 +1,5 @@
 import { registerQueryClause } from '../registry'
+import { cardNameClause } from './card-name'
 import { oracleTextClause } from './oracle-text'
 import { oracleTagClause } from './oracle-tag'
 import { reverseOracleTagClause } from './reverse-oracle-tag'
@@ -34,7 +35,11 @@ import { loreFinderClause } from './lore-finder'
 // where it's legal, promo/foil/frame attributes) rather than its rules
 // identity. Type Line similarly merged into "Type & Stats" alongside
 // Power/Toughness.
+//
+// Card Name is `pinned` — always present as the first canvas card, never
+// offered in the sidebar (see Sidebar.tsx), so its `category` is inert.
 
+registerQueryClause(cardNameClause)
 registerQueryClause(oracleTextClause)
 registerQueryClause(oracleTagClause)
 registerQueryClause(reverseOracleTagClause)
