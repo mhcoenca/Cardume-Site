@@ -15,7 +15,7 @@ interface ResultsPanelProps {
 
 const MIN_THUMBNAIL_SIZE = 110
 const MAX_THUMBNAIL_SIZE = 230
-const DEFAULT_THUMBNAIL_SIZE = 160
+const DEFAULT_THUMBNAIL_SIZE = MAX_THUMBNAIL_SIZE
 
 export function ResultsPanel({ query, params }: ResultsPanelProps) {
   const { cards, totalCards, loading, loadingMore, error, hasMore, loadMore } = useCardSearch(
