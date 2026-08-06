@@ -8,7 +8,12 @@
     <script>
       (function () {
         var stored = localStorage.getItem('scryfall-studio-theme')
-        var theme = stored === 'light' ? 'light' : 'dark'
+        var theme
+        if (stored === 'light' || stored === 'dark') {
+          theme = stored
+        } else {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
         document.documentElement.classList.toggle('dark', theme === 'dark')
       })()
     </script>

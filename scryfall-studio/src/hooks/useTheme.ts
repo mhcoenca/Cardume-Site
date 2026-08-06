@@ -6,7 +6,9 @@ const STORAGE_KEY = 'scryfall-studio-theme'
 
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY)
-  return stored === 'light' ? 'light' : 'dark'
+  if (stored === 'light' || stored === 'dark') return stored
+  // No explicit choice yet — first visit follows the OS/browser preference.
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 export function useTheme() {
