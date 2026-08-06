@@ -55,7 +55,7 @@ function DialogContent({
           // only. Capped a thumb's width from the top of the screen rather than a
           // fixed vh percentage, so content-heavy sheets can use nearly the full
           // screen while small ones still size to their content.
-          "fixed inset-x-0 top-auto bottom-0 z-50 grid max-h-[calc(100dvh-4rem)] w-full translate-x-0 translate-y-0 gap-4 overflow-y-auto rounded-t-xl bg-popover p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom",
+          "fixed inset-x-0 top-auto bottom-0 z-50 grid max-h-[calc(100dvh-4rem)] w-full translate-x-0 translate-y-0 gap-4 overflow-y-auto rounded-t-xl bg-popover p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom",
           // Desktop (sm+): the original centered, floating dialog box — not
           // pinned to a screen edge, so no safe-area padding needed.
           "sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-h-none sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pb-4 sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
@@ -108,7 +108,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end sm:pb-4",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:justify-end sm:pb-4",
         className
       )}
       {...props}
