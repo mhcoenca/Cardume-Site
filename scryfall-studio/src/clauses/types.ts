@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 
 export type QueryClauseInputType =
   | 'text'
+  | 'card-name'
   | 'oracle-tag'
   | 'reverse-oracle-tag'
   | 'type-line'
