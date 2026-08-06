@@ -31,10 +31,10 @@ import {
   LEGALITY_STATUSES,
   type LegalityValue,
 } from '@/clauses/plugins/legality'
+import type { OracleTagClauseValue } from '@/clauses/plugins/oracle-tag'
 import { PRICE_CURRENCIES, type PriceValue } from '@/clauses/plugins/price'
 import type { ReverseOracleTagValue } from '@/clauses/plugins/reverse-oracle-tag'
 import type { AnyQueryClause } from '@/clauses/types'
-import type { OracleTagValue } from '@/services/oracleTags/types'
 
 interface ClauseInputProps {
   clause: AnyQueryClause
@@ -89,7 +89,7 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
     case 'oracle-tag':
       return (
         <OracleTagInput
-          value={value as OracleTagValue | null}
+          value={value as OracleTagClauseValue}
           onChange={onChange}
           placeholder={clause.metadata?.placeholder}
         />

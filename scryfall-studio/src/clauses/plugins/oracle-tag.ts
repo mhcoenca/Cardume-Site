@@ -3,16 +3,34 @@ import { getOracleTagBySlug } from '@/services/oracleTags/OracleTagService'
 import type { OracleTagValue } from '@/services/oracleTags/types'
 import type { QueryClause } from '../types'
 
-export const oracleTagClause: QueryClause<OracleTagValue | null> = {
+export type OracleTagCombineMode = 'and' | 'or'
+
+export interface OracleTagClauseValue {
+  tags: OracleTagValue[]
+  combineMode: OracleTagCombineMode
+}
+
+const DEFAULT_VALUE: OracleTagClauseValue = { tags: [], combineMode: 'and' }
+
+export const oracleTagClause: QueryClause<OracleTagClauseValue> = {
   id: 'oracle-tag',
   label: 'Oracle Tag',
-  description: 'Match cards tagged with a community-curated functional tag.',
+  description: 'Match cards tagged with one or more community-curated functional tags.',
   category: 'Oracle',
   icon: Tags,
   operator: 'otag',
   inputType: 'oracle-tag',
-  defaultValue: null,
-  toQuery: (value) => (value ? `otag:${value.slug}` : ''),
+  defaultValue: DEFAULT_VALUE,
+  toQuery: (value) => {
+    if (!value.tags.length) return ''
+    const tokens = value.tags.map((tag) => `otag:${tag.slug}`)
+    if (tokens.length === 1) return tokens[0]
+    return value.combineMode === 'or' ? `(${tokens.join(' OR ')})` : `(${tokens.join(' ')})`
+  },
+  // Only reconstructs a single otag: token into a one-tag value on import —
+  // same limitation as every other multi-value clause (Criteria, Type
+  // Line), since the URL-import parser recognizes one query token at a
+  // time, not a group.
   fromQuery: (fragment) => {
     if (!fragment.toLowerCase().startsWith('otag:')) return null
     const slug = fragment.slice('otag:'.length)
@@ -22,13 +40,14 @@ export const oracleTagClause: QueryClause<OracleTagValue | null> = {
     // the real label appears once the user opens this card and the
     // dataset loads (label === slug for most tags anyway).
     const cached = getOracleTagBySlug(slug)
-    return cached
+    const tag = cached
       ? { id: cached.id, slug: cached.slug, label: cached.label }
       : { id: slug, slug, label: slug }
+    return { tags: [tag], combineMode: 'and' }
   },
   metadata: {
     keywords: ['tagger', 'functional tag', 'tagged'],
-    examples: ['otag:activated-ability', 'otag:removal'],
+    examples: ['otag:activated-ability', '(otag:removal OR otag:ramp)'],
     placeholder: 'Search Oracle Tags…',
     docsUrl: 'https://scryfall.com/docs/api/tags',
   },

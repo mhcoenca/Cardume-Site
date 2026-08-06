@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { HelpCircle, Loader2, Search } from 'lucide-react'
+import { useState, type ChangeEvent, type ReactNode } from 'react'
+import { HelpCircle, Loader2, Search, X } from 'lucide-react'
+import { SegmentedToggle } from '@/components/clauses/SegmentedToggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import type { OracleTagClauseValue, OracleTagCombineMode } from '@/clauses/plugins/oracle-tag'
 import {
   ensureOracleTagsLoaded,
   getOracleTagsLoadError,
@@ -13,8 +15,8 @@ import type { OracleTag, OracleTagValue } from '@/services/oracleTags/types'
 import { OracleTagBrowserModal } from './OracleTagBrowserModal'
 
 interface OracleTagInputProps {
-  value: OracleTagValue | null
-  onChange: (value: OracleTagValue | null) => void
+  value: OracleTagClauseValue
+  onChange: (value: OracleTagClauseValue) => void
   placeholder?: string
 }
 
@@ -23,6 +25,11 @@ interface OracleTagOption {
   label: string
   description?: string | null
 }
+
+const COMBINE_MODES = [
+  { value: 'and' as const, label: 'All', title: 'Match every selected tag' },
+  { value: 'or' as const, label: 'Any', title: 'Match at least one selected tag (partial matches)' },
+]
 
 function OptionRow({ option, onSelect }: { option: OracleTagOption; onSelect: () => void }) {
   return (
@@ -49,7 +56,7 @@ function Dropdown({ children }: { children: ReactNode }) {
 }
 
 export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputProps) {
-  const [inputValue, setInputValue] = useState(value?.label ?? '')
+  const [inputValue, setInputValue] = useState('')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,26 +64,23 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
   const [recent, setRecent] = useState<OracleTagValue[]>([])
   const [browserOpen, setBrowserOpen] = useState(false)
 
-  // The dataset load is async; by the time it resolves the user may have
-  // already typed further. A ref (updated every render) lets that callback
-  // read the query as it stands *then*, instead of the one closed over when
-  // the load started — otherwise a stale, usually-empty query would
-  // overwrite whatever the user had already typed.
-  const inputValueRef = useRef(inputValue)
-  inputValueRef.current = inputValue
+  const selectedIds = new Set(value.tags.map((tag) => tag.id))
 
-  // Stays in sync if the value is ever changed from outside this component
-  // (e.g. a future reverse-parsed query or an Inspector edit).
-  useEffect(() => {
-    setInputValue(value?.label ?? '')
-  }, [value])
-
-  function commitSelection(tag: OracleTagValue) {
-    onChange(tag)
-    setInputValue(tag.label)
+  function addTag(tag: OracleTagValue) {
+    if (selectedIds.has(tag.id)) return
+    onChange({ ...value, tags: [...value.tags, tag] })
+    setInputValue('')
     setOpen(false)
     addRecentOracleTag(tag)
     setRecent(getRecentOracleTags())
+  }
+
+  function removeTag(tagId: string) {
+    onChange({ ...value, tags: value.tags.filter((tag) => tag.id !== tagId) })
+  }
+
+  function setCombineMode(combineMode: OracleTagCombineMode) {
+    onChange({ ...value, combineMode })
   }
 
   function handleFocus() {
@@ -87,7 +91,7 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
     ensureOracleTagsLoaded()
       .then(() => {
         setLoading(false)
-        setResults(searchOracleTags(inputValueRef.current))
+        setResults(searchOracleTags(inputValue))
       })
       .catch(() => {
         setLoading(false)
@@ -99,92 +103,106 @@ export function OracleTagInput({ value, onChange, placeholder }: OracleTagInputP
     const next = event.target.value
     setInputValue(next)
     setResults(searchOracleTags(next))
-    // Typing never blurs the field, so a selection made just before this
-    // (which closes the dropdown but keeps focus, by design) wouldn't
-    // otherwise reopen it.
     setOpen(true)
   }
 
   function handleBlur() {
     setOpen(false)
-    if (!inputValue.trim()) {
-      onChange(null)
-      return
-    }
-    // Typed text that was never selected from the list doesn't become the
-    // value — revert to whatever was last actually chosen.
-    setInputValue(value?.label ?? '')
   }
 
   const hasQuery = inputValue.trim().length > 0
+  const availableResults = results.filter((tag) => !selectedIds.has(tag.id))
+  const availableRecent = recent.filter((tag) => !selectedIds.has(tag.id))
 
   return (
-    <div className="relative">
-      <div className="flex items-center gap-1.5">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={inputValue}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onClick={() => setOpen(true)}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            className="pl-8"
-          />
-          {loading && (
-            <Loader2 className="absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-          )}
+    <div className="flex flex-col gap-2">
+      {value.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="flex items-center gap-1 rounded-md border border-primary bg-primary px-2 py-1 text-xs font-medium text-primary-foreground"
+            >
+              {tag.label}
+              <button
+                type="button"
+                onClick={() => removeTag(tag.id)}
+                aria-label={`Remove ${tag.label}`}
+                className="opacity-80 hover:opacity-100"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          onClick={() => setBrowserOpen(true)}
-          aria-label="Browse all Oracle Tags"
-          title="Browse all Oracle Tags"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Button>
+      )}
+
+      <div className="relative">
+        <div className="flex items-center gap-1.5">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={inputValue}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              onClick={() => setOpen(true)}
+              onBlur={handleBlur}
+              placeholder={placeholder}
+              className="pl-8"
+            />
+            {loading && (
+              <Loader2 className="absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => setBrowserOpen(true)}
+            aria-label="Browse all Oracle Tags"
+            title="Browse all Oracle Tags"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <OracleTagBrowserModal open={browserOpen} onOpenChange={setBrowserOpen} onSelect={addTag} />
+
+        {open && (
+          <Dropdown>
+            {hasQuery ? (
+              error ? (
+                <p className="p-3 text-xs text-destructive">{error}</p>
+              ) : loading ? (
+                <p className="p-3 text-xs text-muted-foreground">Loading Oracle Tags…</p>
+              ) : availableResults.length ? (
+                availableResults.map((tag) => (
+                  <OptionRow key={tag.id} option={tag} onSelect={() => addTag(toOracleTagValue(tag))} />
+                ))
+              ) : (
+                <p className="p-3 text-xs text-muted-foreground">No matching tags.</p>
+              )
+            ) : availableRecent.length ? (
+              <>
+                <p className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Recent
+                </p>
+                {availableRecent.map((tag) => (
+                  <OptionRow key={tag.id} option={tag} onSelect={() => addTag(tag)} />
+                ))}
+              </>
+            ) : (
+              <p className="p-3 text-xs text-muted-foreground">Start typing to search…</p>
+            )}
+          </Dropdown>
+        )}
       </div>
 
-      <OracleTagBrowserModal
-        open={browserOpen}
-        onOpenChange={setBrowserOpen}
-        onSelect={commitSelection}
-      />
-
-      {open && (
-        <Dropdown>
-          {hasQuery ? (
-            error ? (
-              <p className="p-3 text-xs text-destructive">{error}</p>
-            ) : loading ? (
-              <p className="p-3 text-xs text-muted-foreground">Loading Oracle Tags…</p>
-            ) : results.length ? (
-              results.map((tag) => (
-                <OptionRow
-                  key={tag.id}
-                  option={tag}
-                  onSelect={() => commitSelection(toOracleTagValue(tag))}
-                />
-              ))
-            ) : (
-              <p className="p-3 text-xs text-muted-foreground">No matching tags.</p>
-            )
-          ) : recent.length ? (
-            <>
-              <p className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                Recent
-              </p>
-              {recent.map((tag) => (
-                <OptionRow key={tag.id} option={tag} onSelect={() => commitSelection(tag)} />
-              ))}
-            </>
-          ) : (
-            <p className="p-3 text-xs text-muted-foreground">Start typing to search…</p>
-          )}
-        </Dropdown>
+      {value.tags.length > 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Match</span>
+          <SegmentedToggle options={COMBINE_MODES} value={value.combineMode} onChange={setCombineMode} />
+        </div>
       )}
     </div>
   )
