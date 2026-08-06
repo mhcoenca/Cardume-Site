@@ -28,6 +28,13 @@ export interface QueryClauseMetadata {
   placeholder?: string
   /** Short explanation shown in a tooltip next to the clause. */
   tooltip?: string
+  /**
+   * Longer-form syntax nuances, each one rendered as its own line in a
+   * dedicated help dialog (triggered by a (?) button next to the input) —
+   * for fields whose search behavior has real gotchas worth spelling out,
+   * not just a one-line tooltip's worth.
+   */
+  helpText?: string[]
 }
 
 export interface QueryClauseOption {

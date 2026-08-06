@@ -1,4 +1,5 @@
 export interface ScryfallCardFace {
+  name?: string
   image_uris?: Record<string, string>
 }
 

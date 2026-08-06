@@ -1,9 +1,19 @@
-import { Check, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { Check, ExternalLink, RotateCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ScryfallCard } from '@/services/scryfall/searchCards'
 
-function getImageUrl(card: ScryfallCard): string | null {
-  return card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? null
+// Only transform/modal-DFC layouts have a separate image per face — split,
+// flip, and Adventure cards also carry a `card_faces` array (for their two
+// halves' text/mana cost) but render both halves on one physical image, so
+// there's nothing to flip *to*. Checking each face has its own `image_uris`
+// (rather than just `card_faces.length >= 2`) is what tells them apart —
+// verified against the live API for one card of each layout.
+function getFaceImageUrls(card: ScryfallCard): string[] {
+  const faces = card.card_faces ?? []
+  const faceImages = faces.map((f) => f.image_uris?.normal).filter((url): url is string => Boolean(url))
+  if (faceImages.length >= 2) return faceImages
+  return card.image_uris?.normal ? [card.image_uris.normal] : []
 }
 
 interface CardThumbnailProps {
@@ -13,7 +23,11 @@ interface CardThumbnailProps {
 }
 
 export function CardThumbnail({ card, selected, onToggleSelect }: CardThumbnailProps) {
-  const imageUrl = getImageUrl(card)
+  const [faceIndex, setFaceIndex] = useState(0)
+  const faceImages = getFaceImageUrls(card)
+  const isDoubleFaced = faceImages.length >= 2
+  const imageUrl = faceImages[faceIndex] ?? faceImages[0] ?? null
+  const displayedFaceName = isDoubleFaced ? (card.card_faces?.[faceIndex]?.name ?? card.name) : card.name
 
   return (
     <div
@@ -44,6 +58,21 @@ export function CardThumbnail({ card, selected, onToggleSelect }: CardThumbnailP
         <ExternalLink className="h-3 w-3" />
       </a>
 
+      {isDoubleFaced && (
+        <button
+          type="button"
+          title={`Show ${faceIndex === 0 ? 'back' : 'front'} face`}
+          aria-label={`Show ${faceIndex === 0 ? 'back' : 'front'} face`}
+          onClick={(event) => {
+            event.stopPropagation()
+            setFaceIndex((i) => (i + 1) % faceImages.length)
+          }}
+          className="absolute top-8 left-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-white/70 bg-black/50 text-white transition-colors hover:bg-black/70"
+        >
+          <RotateCw className="h-3 w-3" />
+        </button>
+      )}
+
       {selected && (
         <div className="absolute top-1.5 right-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <Check className="h-3 w-3" />
@@ -54,7 +83,7 @@ export function CardThumbnail({ card, selected, onToggleSelect }: CardThumbnailP
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={card.name}
+            alt={displayedFaceName}
             loading="lazy"
             className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
           />

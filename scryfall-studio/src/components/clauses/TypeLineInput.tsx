@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import type { TypeCombineMode, TypeLineValue } from '@/clauses/plugins/card-types'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/utils'
 import {
@@ -10,12 +11,18 @@ import {
   type TypeCategory,
   type TypeCategoryGroup,
 } from '@/services/scryfall/typeCatalog'
+import { SegmentedToggle } from './SegmentedToggle'
 import { TypeCategoryRow } from './TypeCategoryRow'
 
 interface TypeLineInputProps {
-  value: string[]
-  onChange: (value: string[]) => void
+  value: TypeLineValue
+  onChange: (value: TypeLineValue) => void
 }
+
+const COMBINE_MODES = [
+  { value: 'and' as const, label: 'All', title: 'Match every selected type' },
+  { value: 'or' as const, label: 'Any', title: 'Match at least one selected type (partial matches)' },
+]
 
 interface TypeCategoryMultiSelectProps {
   selected: Set<TypeCategory>
@@ -107,7 +114,9 @@ export function TypeLineInput({ value, onChange }: TypeLineInputProps) {
         if (!didAutoOpen.current) {
           didAutoOpen.current = true
           const withSelections = loaded
-            .filter((g) => g.types.some((t) => value.some((v) => v.toLowerCase() === t.toLowerCase())))
+            .filter((g) =>
+              g.types.some((t) => value.types.some((v) => v.toLowerCase() === t.toLowerCase())),
+            )
             .map((g) => g.category)
           if (withSelections.length) {
             setOpenCategories(new Set(withSelections))
@@ -141,7 +150,7 @@ export function TypeLineInput({ value, onChange }: TypeLineInputProps) {
           {TYPE_CATEGORIES.map(({ category, label }) => {
             const group = groupByCategory.get(category)
             const hasSelections =
-              group?.types.some((t) => value.some((v) => v.toLowerCase() === t.toLowerCase())) ??
+              group?.types.some((t) => value.types.some((v) => v.toLowerCase() === t.toLowerCase())) ??
               false
             const isOpen = openCategories.has(category)
             return (
@@ -181,10 +190,21 @@ export function TypeLineInput({ value, onChange }: TypeLineInputProps) {
             label={label}
             types={groupByCategory.get(category)?.types ?? []}
             loading={loading && !groupByCategory.has(category)}
-            value={value}
-            onChange={onChange}
+            value={value.types}
+            onChange={(types) => onChange({ ...value, types })}
           />
         ),
+      )}
+
+      {value.types.length > 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Match</span>
+          <SegmentedToggle
+            options={COMBINE_MODES}
+            value={value.combineMode}
+            onChange={(combineMode: TypeCombineMode) => onChange({ ...value, combineMode })}
+          />
+        </div>
       )}
     </div>
   )

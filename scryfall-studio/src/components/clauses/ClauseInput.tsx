@@ -1,4 +1,13 @@
+import { useState } from 'react'
+import { HelpCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -16,6 +25,7 @@ import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
 import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
 import type { CriteriaValue } from '@/clauses/plugins/criteria'
+import type { TypeLineValue } from '@/clauses/plugins/card-types'
 import {
   FORMAT_OPTIONS,
   LEGALITY_STATUSES,
@@ -33,15 +43,48 @@ interface ClauseInputProps {
 }
 
 export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
+  const [helpOpen, setHelpOpen] = useState(false)
+
   switch (clause.inputType) {
-    case 'text':
+    case 'text': {
+      const helpText = clause.metadata?.helpText
       return (
-        <Input
-          value={(value as string) ?? ''}
-          placeholder={clause.metadata?.placeholder}
-          onChange={(event) => onChange(event.target.value)}
-        />
+        <div className="flex items-center gap-1.5">
+          <Input
+            value={(value as string) ?? ''}
+            placeholder={clause.metadata?.placeholder}
+            onChange={(event) => onChange(event.target.value)}
+            className="flex-1"
+          />
+          {helpText && helpText.length > 0 && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                onClick={() => setHelpOpen(true)}
+                aria-label={`${clause.label} search tips`}
+                title={`${clause.label} search tips`}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+              <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{clause.label} search tips</DialogTitle>
+                  </DialogHeader>
+                  <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+                    {helpText.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+        </div>
       )
+    }
 
     case 'oracle-tag':
       return (
@@ -77,7 +120,7 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
       )
 
     case 'type-line':
-      return <TypeLineInput value={(value as string[]) ?? []} onChange={onChange} />
+      return <TypeLineInput value={value as TypeLineValue} onChange={onChange} />
 
     case 'mana-cost':
       return <ManaCostInput value={(value as string) ?? ''} onChange={onChange} />
