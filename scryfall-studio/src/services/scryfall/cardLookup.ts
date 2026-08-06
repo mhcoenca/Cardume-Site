@@ -41,6 +41,13 @@ export async function getCardByName(
   return toSummary(await response.json())
 }
 
+/** Direct lookup by Scryfall card id — e.g. resolving the `?lookup=` deep link. */
+export async function getCardById(id: string, signal?: AbortSignal): Promise<ScryfallCardSummary | null> {
+  const response = await fetch(`${CARDS_ENDPOINT}/${id}`, { signal })
+  if (!response.ok) return null
+  return toSummary(await response.json())
+}
+
 /** Parses a scryfall.com/card/<set>/<number>/... URL and resolves it directly. */
 export async function getCardFromScryfallUrl(
   rawUrl: string,

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Download, Menu, X } from 'lucide-react'
+import { CopyboardModal } from '@/components/copyboard/CopyboardModal'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useCopyboard } from '@/store/useCopyboard'
 import { useQueryStore } from '@/store/useQueryStore'
 import { CardumeLogo } from './CardumeLogo'
 import { ThemeToggle } from './ThemeToggle'
@@ -21,9 +23,11 @@ interface ToolbarProps {
 
 export function Toolbar({ onOpenSidebar }: ToolbarProps) {
   const { hasImport, importUrl, clearImport } = useQueryStore()
+  const { cards: copyboardCards } = useCopyboard()
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [copyboardOpen, setCopyboardOpen] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   function handleImport() {
@@ -109,6 +113,16 @@ export function Toolbar({ onOpenSidebar }: ToolbarProps) {
             </DialogContent>
           </Dialog>
         )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={copyboardCards.length === 0}
+          onClick={() => setCopyboardOpen(true)}
+        >
+          Copyboard ({copyboardCards.length})
+        </Button>
+        <CopyboardModal open={copyboardOpen} onOpenChange={setCopyboardOpen} />
 
         <ThemeToggle />
       </div>

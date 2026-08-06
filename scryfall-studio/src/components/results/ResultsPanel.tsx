@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCardSearch } from '@/hooks/useCardSearch'
+import { useCopyboard } from '@/store/useCopyboard'
 import { useQueryStore } from '@/store/useQueryStore'
 import { CardThumbnail } from './CardThumbnail'
 import { ResultsActionBar } from './ResultsActionBar'
@@ -22,6 +23,7 @@ export function ResultsPanel({ query, params }: ResultsPanelProps) {
     params,
   )
   const { sort, setSort } = useQueryStore()
+  const { addCards } = useCopyboard()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [thumbnailSize, setThumbnailSize] = useState(DEFAULT_THUMBNAIL_SIZE)
 
@@ -50,6 +52,12 @@ export function ResultsPanel({ query, params }: ResultsPanelProps) {
       .map((card) => `1 ${card.name}`)
       .join('\n')
     await navigator.clipboard.writeText(text)
+  }
+
+  function sendToCopyboard() {
+    addCards(
+      cards.filter((card) => selectedIds.has(card.id)).map((card) => ({ id: card.id, name: card.name })),
+    )
   }
 
   if (!query.trim()) return null
@@ -87,6 +95,7 @@ export function ResultsPanel({ query, params }: ResultsPanelProps) {
             selectedCount={selectedIds.size}
             onToggleSelectAll={toggleSelectAll}
             onCopySelected={copySelected}
+            onSendToCopyboard={sendToCopyboard}
             size={thumbnailSize}
             onSizeChange={setThumbnailSize}
             minSize={MIN_THUMBNAIL_SIZE}

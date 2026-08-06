@@ -1,7 +1,12 @@
 import { useState } from 'react'
-import { Check, ExternalLink, RotateCw } from 'lucide-react'
+import { Check, EllipsisVertical, ExternalLink, RotateCw, Tags } from 'lucide-react'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
 import type { ScryfallCard } from '@/services/scryfall/searchCards'
+
+function buildReverseOracleTagUrl(cardId: string): string {
+  return `${window.location.origin}${window.location.pathname}?lookup=${encodeURIComponent(cardId)}`
+}
 
 // Only transform/modal-DFC layouts have a separate image per face — split,
 // flip, and Adventure cards also carry a `card_faces` array (for their two
@@ -47,16 +52,35 @@ export function CardThumbnail({ card, selected, onToggleSelect }: CardThumbnailP
         selected ? 'border-primary ring-2 ring-primary' : 'border-border',
       )}
     >
-      <a
-        href={card.scryfall_uri}
-        target="_blank"
-        rel="noreferrer"
-        title={`Open ${card.name} on Scryfall`}
-        onClick={(event) => event.stopPropagation()}
-        className="absolute top-1.5 left-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-white/70 bg-black/50 text-white transition-colors hover:bg-black/70"
-      >
-        <ExternalLink className="h-3 w-3" />
-      </a>
+      <Menu>
+        <MenuTrigger
+          render={
+            <button
+              type="button"
+              title={`Actions for ${card.name}`}
+              aria-label={`Actions for ${card.name}`}
+              onClick={(event) => event.stopPropagation()}
+              className="absolute top-1.5 left-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-md border border-white/70 bg-black/50 text-white transition-colors hover:bg-black/70"
+            />
+          }
+        >
+          <EllipsisVertical className="h-3 w-3" />
+        </MenuTrigger>
+        <MenuContent onClick={(event) => event.stopPropagation()}>
+          <MenuItem onClick={() => window.open(card.scryfall_uri, '_blank', 'noopener,noreferrer')}>
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open in Scryfall
+          </MenuItem>
+          <MenuItem
+            onClick={() =>
+              window.open(buildReverseOracleTagUrl(card.id), '_blank', 'noopener,noreferrer')
+            }
+          >
+            <Tags className="h-3.5 w-3.5" />
+            Reverse Oracle Tag
+          </MenuItem>
+        </MenuContent>
+      </Menu>
 
       {isDoubleFaced && (
         <button

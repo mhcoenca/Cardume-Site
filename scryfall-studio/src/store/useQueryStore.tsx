@@ -1,7 +1,8 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { getQueryClause, listQueryClauses } from '@/clauses/registry'
 import { buildScryfallUrl, parseScryfallUrl } from '@/lib/scryfallUrl'
 import { DEFAULT_SORT, sortToUrlParams, type SortValue } from '@/lib/sortOptions'
+import { readUrlState, writeUrlState } from '@/lib/urlState'
 import { buildQuery } from '@/query/buildQuery'
 import { buildUrlParams } from '@/query/buildUrlParams'
 import { parseQuery } from '@/query/parseQuery'
@@ -20,6 +21,7 @@ interface QueryState {
 
 type QueryAction =
   | { type: 'ADD_CLAUSE'; clauseId: string }
+  | { type: 'SET_CLAUSE_VALUE'; clauseId: string; value: unknown }
   | { type: 'REMOVE_INSTANCE'; instanceId: string }
   | { type: 'UPDATE_VALUE'; instanceId: string; value: unknown }
   | { type: 'MOVE_INSTANCE'; instanceId: string; direction: 'up' | 'down' }
@@ -48,12 +50,36 @@ function createInitialState(): QueryState {
       value: clause.defaultValue,
     }))
 
+  // A shared link's `?state=` wins over the pinned default for any clause
+  // both define (e.g. Card Name) — merged by clauseId rather than appended,
+  // same principle as IMPORT_URL, so pinning doesn't produce a duplicate.
+  const shared = readUrlState()
+  if (!shared) {
+    return {
+      instances: pinnedInstances,
+      importedQuery: null,
+      baseQuery: '',
+      importedParams: null,
+      sort: DEFAULT_SORT,
+    }
+  }
+
+  const instances = [...pinnedInstances]
+  for (const incoming of shared.instances) {
+    const existingIndex = instances.findIndex((i) => i.clauseId === incoming.clauseId)
+    if (existingIndex === -1) {
+      instances.push(incoming)
+    } else {
+      instances[existingIndex] = incoming
+    }
+  }
+
   return {
-    instances: pinnedInstances,
+    instances,
     importedQuery: null,
     baseQuery: '',
     importedParams: null,
-    sort: DEFAULT_SORT,
+    sort: shared.sort,
   }
 }
 
@@ -71,6 +97,28 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
         value: clause.defaultValue,
       }
       return { ...state, instances: [...state.instances, instance] }
+    }
+    // Adds the clause if missing, or updates it in place if already present
+    // — the atomic "upsert" ADD_CLAUSE + UPDATE_VALUE can't express, since
+    // ADD_CLAUSE only dispatches; it doesn't hand back the new instanceId
+    // an immediately-following UPDATE_VALUE would need. Used by the
+    // ?lookup= deep-link bootstrap, where the value is only known once an
+    // async fetch resolves, after the initial render.
+    case 'SET_CLAUSE_VALUE': {
+      const clause = getQueryClause(action.clauseId)
+      if (!clause) return state
+      const existingIndex = state.instances.findIndex((i) => i.clauseId === action.clauseId)
+      if (existingIndex === -1) {
+        const instance: QueryClauseInstance = {
+          instanceId: crypto.randomUUID(),
+          clauseId: clause.id,
+          value: action.value,
+        }
+        return { ...state, instances: [...state.instances, instance] }
+      }
+      const instances = [...state.instances]
+      instances[existingIndex] = { ...instances[existingIndex], value: action.value }
+      return { ...state, instances }
     }
     case 'REMOVE_INSTANCE': {
       const instance = state.instances.find((i) => i.instanceId === action.instanceId)
@@ -159,6 +207,8 @@ interface QueryStoreValue {
   sort: SortValue
   setSort: (sort: SortValue) => void
   addClause: (clauseId: string) => void
+  /** Adds the clause with this value if missing, or updates it in place if present. */
+  setClauseValue: (clauseId: string, value: unknown) => void
   removeInstance: (instanceId: string) => void
   updateInstanceValue: (instanceId: string, value: unknown) => void
   moveInstance: (instanceId: string, direction: 'up' | 'down') => void
@@ -175,6 +225,16 @@ const QueryStoreContext = createContext<QueryStoreValue | null>(null)
 
 export function QueryStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(queryReducer, undefined, createInitialState)
+
+  // Keeps the address bar itself the shareable link — debounced so typing
+  // doesn't rewrite it on every keystroke, and replaceState (never
+  // pushState) so it doesn't spam the back button.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      writeUrlState(state.instances, state.sort)
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [state.instances, state.sort])
 
   const value = useMemo<QueryStoreValue>(() => {
     const additions = buildQuery(state.instances)
@@ -198,6 +258,7 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       sort: state.sort,
       setSort: (sort) => dispatch({ type: 'SET_SORT', sort }),
       addClause: (clauseId) => dispatch({ type: 'ADD_CLAUSE', clauseId }),
+      setClauseValue: (clauseId, value) => dispatch({ type: 'SET_CLAUSE_VALUE', clauseId, value }),
       removeInstance: (instanceId) => dispatch({ type: 'REMOVE_INSTANCE', instanceId }),
       updateInstanceValue: (instanceId, value) =>
         dispatch({ type: 'UPDATE_VALUE', instanceId, value }),

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Copy, ZoomIn, ZoomOut } from 'lucide-react'
+import { Check, Copy, SendToBack, ZoomIn, ZoomOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -17,6 +17,7 @@ interface ResultsActionBarProps {
   selectedCount: number
   onToggleSelectAll: () => void
   onCopySelected: () => void
+  onSendToCopyboard: () => void
   size: number
   onSizeChange: (size: number) => void
   minSize: number
@@ -30,6 +31,7 @@ export function ResultsActionBar({
   selectedCount,
   onToggleSelectAll,
   onCopySelected,
+  onSendToCopyboard,
   size,
   onSizeChange,
   minSize,
@@ -71,6 +73,19 @@ export function ResultsActionBar({
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
       {copied ? 'Copied' : 'Copy Selected'}
+    </Button>
+  )
+
+  const copyboardButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      className={isDesktop ? undefined : 'flex-1'}
+      disabled={selectedCount === 0}
+      onClick={onSendToCopyboard}
+    >
+      <SendToBack className="h-3.5 w-3.5" />
+      Send to Copyboard
     </Button>
   )
 
@@ -125,6 +140,7 @@ export function ResultsActionBar({
           {selectAllButton}
           {copyButton}
         </div>
+        <div className="flex w-full items-center gap-2">{copyboardButton}</div>
         <div className="flex w-full items-center gap-2">{sortControls}</div>
         <div className="flex w-full items-center gap-2">{zoomControls}</div>
       </div>
@@ -136,6 +152,7 @@ export function ResultsActionBar({
       {selectAllButton}
       <span className="text-xs text-muted-foreground">{selectionCountLabel}</span>
       {copyButton}
+      {copyboardButton}
       <div className="ml-auto flex items-center gap-2">{sortControls}</div>
       <div className="flex items-center gap-2 border-l border-border pl-3">{zoomControls}</div>
     </div>
