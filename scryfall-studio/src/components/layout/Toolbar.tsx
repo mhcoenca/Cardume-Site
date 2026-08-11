@@ -50,14 +50,14 @@ export function Toolbar({ onOpenSidebar }: ToolbarProps) {
         />
         <div className="flex shrink-0 items-center gap-1.5">
           <label className="flex items-center gap-2 text-xs whitespace-nowrap text-muted-foreground">
-            Printed only
+            Paper only
             <Switch checked={printedOnly} onCheckedChange={setPrintedOnly} />
           </label>
           <button
             type="button"
             onClick={() => setPrintedOnlyHelpOpen(true)}
-            aria-label="What does Printed only do?"
-            title="What does Printed only do?"
+            aria-label="What does Paper only do?"
+            title="What does Paper only do?"
             className="text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="h-3.5 w-3.5" />
@@ -65,11 +65,11 @@ export function Toolbar({ onOpenSidebar }: ToolbarProps) {
           <Dialog open={printedOnlyHelpOpen} onOpenChange={setPrintedOnlyHelpOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Printed only</DialogTitle>
+                <DialogTitle>Paper only</DialogTitle>
                 <DialogDescription>
                   Excludes Arena/Alchemy cards that only exist digitally, with no paper
-                  printing — on by default so results only show cards you could
-                  actually hold in your hand.
+                  version — on by default so results only show cards you could actually
+                  hold in your hand.
                 </DialogDescription>
               </DialogHeader>
             </DialogContent>
