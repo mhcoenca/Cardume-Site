@@ -17,17 +17,27 @@ export interface TypeCategoryGroup {
 
 const CATALOG_ENDPOINT = 'https://api.scryfall.com/catalog'
 
-// Order mirrors Scryfall's own Type Line autocomplete grouping.
+// Ordered by how many real cards actually use each category — Types stays
+// first as the fundamental axis (every card has one), everything else is
+// sorted by unique-card counts confirmed against the search API:
+// creature-types ~18.7k (t:creature proxy — 350 subtypes is too many terms
+// for one OR query, Scryfall errors past a certain length), supertypes
+// 5,690, enchantment-types 1,646, artifact-types 1,071, spell-types 358,
+// planeswalker-types ~337 (t:planeswalker proxy — same 99-term OR-query
+// limit), land-types 245, battle-types 36. Was previously ordered to
+// mirror Scryfall's own Type Line autocomplete grouping, which buried
+// Creature Types — by far the most commonly filtered category (tribal/
+// typal deckbuilding) — dead last.
 export const TYPE_CATEGORIES: { category: TypeCategory; label: string }[] = [
   { category: 'card-types', label: 'Types' },
-  { category: 'supertypes', label: 'Supertypes' },
-  { category: 'artifact-types', label: 'Artifact Types' },
-  { category: 'battle-types', label: 'Battle Types' },
-  { category: 'enchantment-types', label: 'Enchantment Types' },
-  { category: 'land-types', label: 'Land Types' },
-  { category: 'planeswalker-types', label: 'Planeswalker Types' },
-  { category: 'spell-types', label: 'Spell Types' },
   { category: 'creature-types', label: 'Creature Types' },
+  { category: 'supertypes', label: 'Supertypes' },
+  { category: 'enchantment-types', label: 'Enchantment Types' },
+  { category: 'artifact-types', label: 'Artifact Types' },
+  { category: 'spell-types', label: 'Spell Types' },
+  { category: 'planeswalker-types', label: 'Planeswalker Types' },
+  { category: 'land-types', label: 'Land Types' },
+  { category: 'battle-types', label: 'Battle Types' },
 ]
 
 /** Small always-valid set, used to validate `fromQuery` matches before the live catalog has loaded. */
