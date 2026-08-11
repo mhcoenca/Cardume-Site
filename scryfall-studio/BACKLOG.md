@@ -42,6 +42,22 @@ once done rather than letting it drift from reality.
       (`src/clauses/plugins/loyalty.ts`) under "Type & Stats", same
       `createOperatorNumberClause` factory as Power/Toughness.
 
+## Feature ideas (raised, not built)
+
+- [ ] **Visual AND/OR/NOT builder for prose text clauses** — raised by
+      u/Aerim on r/magicTCG (2026-08-11). Oracle Text/Flavor Text/Lore
+      Finder (`formatMultiWordClause` in `src/lib/textOperand.ts`) only
+      support implicit-AND, one-`operator:word`-per-word search — there's
+      no visual way to combine multiple phrases with AND/OR/NOT or group
+      them with parentheses. Typing raw query syntax into the field
+      doesn't work either: every token (including literal `(`/`)`) gets
+      individually prefixed with the operator, so e.g. `("draw a card"
+      and ":") or "friend"` typed into Oracle Text serializes to
+      `o:( o:"draw a card" o:and o:":") o:or o:"friend"` — Scryfall
+      rejects it as unclosed parentheses. Needs real scoping (multiple
+      phrase rows per clause, each taggable AND/OR/NOT, probably
+      groupable) before starting — not a quick fix.
+
 ## Deferred / explicitly not built (revisit if wanted)
 
 - [ ] **Ads (AdMob vs AdSense)** — raised once, never resolved. AdMob is
