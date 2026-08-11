@@ -54,17 +54,19 @@ once done rather than letting it drift from reality.
       Covers Aerim's case and more, since it accepts *any* Scryfall
       syntax, not just a fixed AND/OR/NOT vocabulary. Full plan/phase
       history: `~/.claude/plans/bright-crafting-gem.md`.
-- [ ] **Query syntax bar: operator-name autocomplete** — Phase 2 of the
-      above. Typing a partial operator (`t:c`) should suggest the full
-      name (`t:`, `type:`) — source list already exists via
-      `listQueryClauses()` in `src/clauses/registry.ts`
-      (`.operator`/`.metadata.aliases`), no new data needed.
-- [ ] **Query syntax bar: value-level autocomplete** — Phase 3. `t:c` →
-      suggest `t:creature`, per-operator, reusing each clause's existing
-      value data source (Type Line's `typeCatalog.ts`, Set's
-      `SetService.ts`, Oracle/Art Tag's search functions). Free-text/
-      numeric operators (Oracle Text, Power…) get no suggestions — nothing
-      meaningful to offer. Build one operator at a time.
+- [x] ~~**Query syntax bar: operator-name autocomplete**~~ — Phase 2.
+      Typing a partial operator (`t`) suggests the full name (`t:`,
+      `tou:`…) — `src/lib/operatorSuggestions.ts`, sourced from
+      `listQueryClauses()`. Arrow keys navigate, Enter/Tab accepts,
+      Escape dismisses.
+- [x] ~~**Query syntax bar: value-level autocomplete**~~ — Phase 3.
+      `t:c` → `t:creature`, `s:wo` → real sets, `otag:rem` → real Oracle
+      Tags — `src/lib/valueSuggestions.ts`, one suggester per operator,
+      reusing each clause's existing value data source. Free-text/numeric
+      operators (Oracle Text, Power…) get no suggestions, by design.
+      Added `getKnownTypeNames()` to `typeCatalog.ts` along the way so
+      Type Line suggestions work instantly off the small fallback set
+      instead of blocking on the full 9-endpoint catalog fetch.
 
 ## Deferred / explicitly not built (revisit if wanted)
 

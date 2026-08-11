@@ -104,6 +104,12 @@ export function getAllTypeGroups(): TypeCategoryGroup[] {
   return groups ?? []
 }
 
+/** The live catalog's types, or the small fallback set before it's loaded — never empty. */
+export function getKnownTypeNames(): string[] {
+  if (groups) return groups.flatMap((g) => g.types)
+  return [...FALLBACK_TYPES]
+}
+
 /** True if the live catalog confirms this, or — before it's loaded — if it's in the small safe fallback set. */
 export function isKnownType(type: string): boolean {
   const lower = type.toLowerCase()

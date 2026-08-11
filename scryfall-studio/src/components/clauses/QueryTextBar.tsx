@@ -1,21 +1,27 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { Code2 } from 'lucide-react'
-import { suggestOperators, type OperatorSuggestion } from '@/lib/operatorSuggestions'
+import { suggestOperators } from '@/lib/operatorSuggestions'
+import { getValueSuggester } from '@/lib/valueSuggestions'
 import { useQueryStore } from '@/store/useQueryStore'
+
+interface Suggestion {
+  key: string
+  /** Exactly what gets spliced into the text at `tokenRange` on accept. */
+  insertText: string
+  primary: string
+  secondary: string
+}
 
 interface TokenRange {
   start: number
   end: number
-  /** Whether the token being replaced started with `-` (kept on accept). */
-  negated: boolean
 }
 
 /** Scans backward from `cursor` to the start of the word it's in — bounded by whitespace or `(`. */
-function currentToken(value: string, cursor: number): TokenRange {
+function wordRange(value: string, cursor: number): TokenRange {
   let start = cursor
   while (start > 0 && !/[\s(]/.test(value[start - 1])) start--
-  const negated = value[start] === '-'
-  return { start: start + (negated ? 1 : 0), end: cursor, negated }
+  return { start, end: cursor }
 }
 
 /**
@@ -26,18 +32,21 @@ function currentToken(value: string, cursor: number): TokenRange {
  * excludes Card Name/Printed Only, which already have dedicated header
  * controls — see `useQueryStore`'s `clauseQueryText`.
  *
- * Also offers operator-name autocomplete (`t` → `t:`, `type:`) sourced
- * from the clause registry — see `src/lib/operatorSuggestions.ts`.
+ * Also offers autocomplete: operator names (`t` → `t:`, `type:`, from the
+ * clause registry) and, once an operator with a known value dataset is
+ * typed, its values too (`t:c` → `t:creature`, `s:wo` → `s:woe`…) — see
+ * `src/lib/operatorSuggestions.ts` and `src/lib/valueSuggestions.ts`.
  */
 export function QueryTextBar() {
   const { clauseQueryText, syncQueryText } = useQueryStore()
   const [draft, setDraft] = useState(clauseQueryText)
   const [focused, setFocused] = useState(false)
-  const [suggestions, setSuggestions] = useState<OperatorSuggestion[]>([])
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [highlighted, setHighlighted] = useState(0)
   const tokenRangeRef = useRef<TokenRange | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const pendingCursorRef = useRef<number | null>(null)
+  const requestSeqRef = useRef(0)
 
   // Only follow the store's canonical text while the user isn't actively
   // editing here — otherwise a change made via a filter card (or this
@@ -71,29 +80,72 @@ export function QueryTextBar() {
     const cursor = event.target.selectionStart
     setDraft(value)
 
-    const token = currentToken(value, cursor)
-    const word = value.slice(token.start, token.end)
-    if (!word || word.includes(':') || word.includes('"')) {
+    const seq = ++requestSeqRef.current
+    const range = wordRange(value, cursor)
+    const rawWord = value.slice(range.start, range.end)
+    const negated = rawWord.startsWith('-')
+    const word = negated ? rawWord.slice(1) : rawWord
+
+    if (!word || word.includes('"')) {
       closeSuggestions()
       return
     }
-    const matches = suggestOperators(word)
-    if (!matches.length) {
+
+    const colonIndex = word.indexOf(':')
+    if (colonIndex === -1) {
+      // Operator position — e.g. typing "t" toward "t:".
+      const matches = suggestOperators(word)
+      if (!matches.length) {
+        closeSuggestions()
+        return
+      }
+      tokenRangeRef.current = { start: range.start + (negated ? 1 : 0), end: range.end }
+      setSuggestions(
+        matches.map((m) => ({
+          key: m.operator,
+          insertText: `${m.operator}:`,
+          primary: `${m.operator}:`,
+          secondary: m.label,
+        })),
+      )
+      setHighlighted(0)
+      return
+    }
+
+    // Value position — e.g. typing "t:cr" toward "t:creature".
+    const operator = word.slice(0, colonIndex)
+    const partial = word.slice(colonIndex + 1)
+    const suggester = getValueSuggester(operator)
+    if (!suggester || !partial || partial.includes('"')) {
       closeSuggestions()
       return
     }
-    tokenRangeRef.current = token
-    setSuggestions(matches)
-    setHighlighted(0)
+    const valueStart = range.start + (negated ? 1 : 0) + colonIndex + 1
+    suggester(partial).then((results) => {
+      if (requestSeqRef.current !== seq) return // a newer keystroke superseded this lookup
+      if (!results.length) {
+        closeSuggestions()
+        return
+      }
+      tokenRangeRef.current = { start: valueStart, end: range.end }
+      setSuggestions(
+        results.map((r) => ({
+          key: r.value,
+          insertText: r.value,
+          primary: r.value,
+          secondary: r.label === r.value ? '' : r.label,
+        })),
+      )
+      setHighlighted(0)
+    })
   }
 
   function acceptSuggestion(index: number) {
-    const token = tokenRangeRef.current
+    const range = tokenRangeRef.current
     const suggestion = suggestions[index]
-    if (!token || !suggestion) return
-    const replacement = `${token.negated ? '-' : ''}${suggestion.operator}:`
-    const next = draft.slice(0, token.start - (token.negated ? 1 : 0)) + replacement + draft.slice(token.end)
-    pendingCursorRef.current = token.start - (token.negated ? 1 : 0) + replacement.length
+    if (!range || !suggestion) return
+    const next = draft.slice(0, range.start) + suggestion.insertText + draft.slice(range.end)
+    pendingCursorRef.current = range.start + suggestion.insertText.length
     setDraft(next)
     closeSuggestions()
   }
@@ -159,7 +211,7 @@ export function QueryTextBar() {
           <div className="absolute z-20 mt-1 w-full max-w-xs overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md">
             {suggestions.map((suggestion, index) => (
               <button
-                key={suggestion.operator}
+                key={suggestion.key}
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => acceptSuggestion(index)}
@@ -167,8 +219,10 @@ export function QueryTextBar() {
                   index === highlighted ? 'bg-accent' : 'hover:bg-accent'
                 }`}
               >
-                <span className="font-mono font-medium text-foreground">{suggestion.operator}:</span>
-                <span className="truncate text-xs text-muted-foreground">{suggestion.label}</span>
+                <span className="font-mono font-medium text-foreground">{suggestion.primary}</span>
+                {suggestion.secondary && (
+                  <span className="truncate text-xs text-muted-foreground">{suggestion.secondary}</span>
+                )}
               </button>
             ))}
           </div>
