@@ -26,6 +26,8 @@ interface OperatorNumberClauseConfig {
   icon: LucideIcon
   /** The bare Scryfall operator, e.g. 'mv', 'pow', 'tou'. */
   operator: string
+  /** Alternate operator names Scryfall accepts for the same field, e.g. 'cmc' for 'mv'. */
+  aliases?: string[]
   metadata?: QueryClauseMetadata
 }
 
@@ -33,7 +35,11 @@ interface OperatorNumberClauseConfig {
 export function createOperatorNumberClause(
   config: OperatorNumberClauseConfig,
 ): QueryClause<OperatorNumberValue> {
-  const fragmentPattern = new RegExp(`^${config.operator}(!=|<=|>=|=|<|>)(\\d+(?:\\.\\d+)?)$`, 'i')
+  const operatorNames = [config.operator, ...(config.aliases ?? [])]
+  const fragmentPattern = new RegExp(
+    `^(?:${operatorNames.join('|')})(!=|<=|>=|=|<|>)(\\d+(?:\\.\\d+)?)$`,
+    'i',
+  )
 
   return {
     id: config.id,

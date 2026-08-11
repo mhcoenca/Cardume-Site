@@ -1,5 +1,5 @@
 import { BookOpen } from 'lucide-react'
-import { formatMultiWordClause } from '@/lib/textOperand'
+import { extractMultiWordTokens, formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 // lore: isn't in the main syntax reference (scryfall.com/docs/syntax) but is
@@ -18,13 +18,9 @@ export const loreFinderClause: QueryClause<string> = {
   inputType: 'text',
   defaultValue: '',
   toQuery: (value) => (value.trim() ? formatMultiWordClause('lore', value) : ''),
-  fromQuery: (fragment) => {
-    if (!fragment.toLowerCase().startsWith('lore:')) return null
-    const operand = fragment.slice('lore:'.length)
-    const isQuoted = operand.length >= 2 && operand.startsWith('"') && operand.endsWith('"')
-    const unquoted = isQuoted ? operand.slice(1, -1) : operand
-    return unquoted || null
-  },
+  // Claims every `lore:` token anywhere in the query, so a multi-word value
+  // survives a URL round-trip instead of collapsing to one word.
+  fromQueryAll: (tokens) => extractMultiWordTokens(['lore'], tokens),
   metadata: {
     keywords: ['character', 'creature type', 'mentions', 'full text', 'name search'],
     examples: ['lore:jhoira', 'lore:goblin'],

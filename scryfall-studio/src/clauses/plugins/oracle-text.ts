@@ -1,5 +1,5 @@
 import { ScrollText } from 'lucide-react'
-import { formatMultiWordClause } from '@/lib/textOperand'
+import { extractMultiWordTokens, formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 export const oracleTextClause: QueryClause<string> = {
@@ -12,13 +12,11 @@ export const oracleTextClause: QueryClause<string> = {
   inputType: 'text',
   defaultValue: '',
   toQuery: (value) => (value.trim() ? formatMultiWordClause('o', value) : ''),
-  fromQuery: (fragment) => {
-    if (!fragment.toLowerCase().startsWith('o:')) return null
-    const operand = fragment.slice('o:'.length)
-    const isQuoted = operand.length >= 2 && operand.startsWith('"') && operand.endsWith('"')
-    const unquoted = isQuoted ? operand.slice(1, -1) : operand
-    return unquoted || null
-  },
+  // Scryfall accepts both `o:` and the full `oracle:` as the same operator.
+  // Claims every matching token anywhere in the query (not just one), so a
+  // multi-word value survives a URL round-trip instead of collapsing to
+  // whichever token happened to be seen last.
+  fromQueryAll: (tokens) => extractMultiWordTokens(['o', 'oracle'], tokens),
   metadata: {
     keywords: ['rules text', 'card text', 'oracle'],
     examples: ['o:draw', 'o:"draw a card"'],

@@ -1,17 +1,25 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
-import { getQueryClause, listQueryClauses } from '@/clauses/registry'
+import { getQueryClause } from '@/clauses/registry'
+import { formatMultiWordClause } from '@/lib/textOperand'
 import { buildScryfallUrl, parseScryfallUrl } from '@/lib/scryfallUrl'
 import { DEFAULT_SORT, sortToUrlParams, type SortValue } from '@/lib/sortOptions'
 import { readUrlState, writeUrlState } from '@/lib/urlState'
 import { buildQuery } from '@/query/buildQuery'
 import { buildUrlParams } from '@/query/buildUrlParams'
-import { parseQuery } from '@/query/parseQuery'
+import {
+  extractBareSearchWords,
+  extractCardNameToken,
+  extractPrintedOnlyToken,
+  parseQuery,
+} from '@/query/parseQuery'
 import type { QueryClauseInstance } from '@/query/types'
 
 interface QueryState {
   instances: QueryClauseInstance[]
-  /** Raw `q` as imported, unmodified — shown as-is in the Workspace. */
-  importedQuery: string | null
+  /** Fixed header field, not a clause — applies to every search unconditionally. */
+  cardName: string
+  /** Fixed header field, not a clause — emits `-is:digital` globally, default on. */
+  printedOnly: boolean
   /** The portion of the (possibly imported) query no registered clause recognized. */
   baseQuery: string
   importedParams: URLSearchParams | null
@@ -25,58 +33,44 @@ type QueryAction =
   | { type: 'REMOVE_INSTANCE'; instanceId: string }
   | { type: 'UPDATE_VALUE'; instanceId: string; value: unknown }
   | { type: 'MOVE_INSTANCE'; instanceId: string; direction: 'up' | 'down' }
+  | { type: 'SET_CARD_NAME'; name: string }
+  | { type: 'SET_PRINTED_ONLY'; printedOnly: boolean }
   | {
       type: 'IMPORT_URL'
-      importedQuery: string
       residual: string
       recognizedInstances: QueryClauseInstance[]
       params: URLSearchParams
+      cardName: string | null
+      printedOnly: boolean
     }
-  | { type: 'CLEAR_IMPORT' }
   | { type: 'SET_SORT'; sort: SortValue }
+  | { type: 'RESET' }
 
-// Pinned clauses (Card Name) are always present, so the canvas is seeded
-// with them rather than starting empty. Built lazily (as useReducer's third
-// arg) rather than at module load — this file can be reached before
-// `@/clauses/plugins`'s registration side effects have run, depending on
-// import order elsewhere, so the registry can't be trusted until a
-// component actually mounts.
+function freshState(): QueryState {
+  return {
+    instances: [],
+    cardName: '',
+    printedOnly: true,
+    baseQuery: '',
+    importedParams: null,
+    sort: DEFAULT_SORT,
+  }
+}
+
+// Built lazily (as useReducer's third arg) rather than at module load — this
+// file can be reached before `@/clauses/plugins`'s registration side effects
+// have run, depending on import order elsewhere, so the registry can't be
+// trusted until a component actually mounts.
 function createInitialState(): QueryState {
-  const pinnedInstances: QueryClauseInstance[] = listQueryClauses()
-    .filter((clause) => clause.pinned)
-    .map((clause) => ({
-      instanceId: crypto.randomUUID(),
-      clauseId: clause.id,
-      value: clause.defaultValue,
-    }))
-
-  // A shared link's `?state=` wins over the pinned default for any clause
-  // both define (e.g. Card Name) — merged by clauseId rather than appended,
-  // same principle as IMPORT_URL, so pinning doesn't produce a duplicate.
   const shared = readUrlState()
   if (!shared) {
-    return {
-      instances: pinnedInstances,
-      importedQuery: null,
-      baseQuery: '',
-      importedParams: null,
-      sort: DEFAULT_SORT,
-    }
-  }
-
-  const instances = [...pinnedInstances]
-  for (const incoming of shared.instances) {
-    const existingIndex = instances.findIndex((i) => i.clauseId === incoming.clauseId)
-    if (existingIndex === -1) {
-      instances.push(incoming)
-    } else {
-      instances[existingIndex] = incoming
-    }
+    return freshState()
   }
 
   return {
-    instances,
-    importedQuery: null,
+    instances: shared.instances,
+    cardName: shared.cardName,
+    printedOnly: shared.printedOnly,
     baseQuery: '',
     importedParams: null,
     sort: shared.sort,
@@ -120,17 +114,11 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
       instances[existingIndex] = { ...instances[existingIndex], value: action.value }
       return { ...state, instances }
     }
-    case 'REMOVE_INSTANCE': {
-      const instance = state.instances.find((i) => i.instanceId === action.instanceId)
-      if (!instance) return state
-      // Pinned clauses (Card Name) can't be removed — same rule enforced
-      // here as in the UI, since this is the actual source of truth.
-      if (getQueryClause(instance.clauseId)?.pinned) return state
+    case 'REMOVE_INSTANCE':
       return {
         ...state,
         instances: state.instances.filter((i) => i.instanceId !== action.instanceId),
       }
-    }
     case 'UPDATE_VALUE':
       return {
         ...state,
@@ -141,22 +129,20 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
     case 'MOVE_INSTANCE': {
       const index = state.instances.findIndex((i) => i.instanceId === action.instanceId)
       if (index === -1) return state
-      // A pinned clause can't move, and nothing can swap into its slot.
-      if (getQueryClause(state.instances[index].clauseId)?.pinned) return state
       const targetIndex = action.direction === 'up' ? index - 1 : index + 1
       if (targetIndex < 0 || targetIndex >= state.instances.length) return state
-      if (getQueryClause(state.instances[targetIndex].clauseId)?.pinned) return state
       const instances = [...state.instances]
       ;[instances[index], instances[targetIndex]] = [instances[targetIndex], instances[index]]
       return { ...state, instances }
     }
+    case 'SET_CARD_NAME':
+      return { ...state, cardName: action.name }
+    case 'SET_PRINTED_ONLY':
+      return { ...state, printedOnly: action.printedOnly }
     case 'IMPORT_URL': {
-      // Merge by clauseId instead of blindly prepending: a pinned clause
-      // (Card Name) is always already present, so a naive prepend would
-      // duplicate it whenever an imported URL also has a name: fragment.
-      // Applies the same merge to every clause for consistency, not just
-      // pinned ones — re-importing a URL that repeats an already-added
-      // clause now updates it in place rather than duplicating it either.
+      // Merge by clauseId instead of blindly prepending — re-importing a
+      // URL that repeats an already-added clause updates it in place
+      // rather than duplicating it.
       const instances = [...state.instances]
       const newInstances: QueryClauseInstance[] = []
       for (const recognized of action.recognizedInstances) {
@@ -167,23 +153,23 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
           instances[existingIndex] = { ...instances[existingIndex], value: recognized.value }
         }
       }
-      // New clauses surface near the top, same as before, but never ahead
-      // of pinned ones.
-      const firstUnpinnedIndex = instances.findIndex((i) => !getQueryClause(i.clauseId)?.pinned)
-      const insertAt = firstUnpinnedIndex === -1 ? instances.length : firstUnpinnedIndex
-      instances.splice(insertAt, 0, ...newInstances)
+      // New clauses surface near the top.
+      instances.splice(0, 0, ...newInstances)
       return {
         ...state,
-        importedQuery: action.importedQuery,
         baseQuery: action.residual,
         importedParams: action.params,
         instances,
+        // An imported name: token wins over whatever was already typed —
+        // consistent with every other clause's merge-by-recognition above.
+        cardName: action.cardName ?? state.cardName,
+        printedOnly: action.printedOnly,
       }
     }
-    case 'CLEAR_IMPORT':
-      return { ...state, importedQuery: null, baseQuery: '', importedParams: null }
     case 'SET_SORT':
       return { ...state, sort: action.sort }
+    case 'RESET':
+      return freshState()
     default:
       return state
   }
@@ -191,11 +177,20 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
 
 interface QueryStoreValue {
   instances: QueryClauseInstance[]
-  /** Raw `q` as imported, unmodified — null if nothing was imported. */
-  importedQuery: string | null
-  hasImport: boolean
-  /** The full query: unrecognized imported portion + every clause's toQuery(). */
+  cardName: string
+  setCardName: (name: string) => void
+  printedOnly: boolean
+  setPrintedOnly: (printedOnly: boolean) => void
+  /** The full query: Card Name + Printed Only + unrecognized imported portion + every clause's toQuery(). */
   query: string
+  /**
+   * Whether there's a deliberate search to run/show — Card Name, at least
+   * one clause, or an imported base query. Deliberately excludes Printed
+   * Only alone: it's a modifier default-on from a fresh state, not
+   * something that should make an untouched app auto-run a search for
+   * every non-digital card the moment it loads.
+   */
+  hasActiveSearch: boolean
   /** The final Scryfall search URL: query + imported params + clause-driven params + Sort. */
   url: string
   /**
@@ -206,6 +201,8 @@ interface QueryStoreValue {
   resultParams: Record<string, string>
   sort: SortValue
   setSort: (sort: SortValue) => void
+  /** Clears every clause, Card Name, imported URL, and Sort back to a fresh start. */
+  resetAll: () => void
   addClause: (clauseId: string) => void
   /** Adds the clause with this value if missing, or updates it in place if present. */
   setClauseValue: (clauseId: string, value: unknown) => void
@@ -214,11 +211,10 @@ interface QueryStoreValue {
   moveInstance: (instanceId: string, direction: 'up' | 'down') => void
   /**
    * Attempts to import a Scryfall search URL. Returns false if it isn't one.
-   * Recognized fragments of its query become clause cards; the rest stays
-   * an opaque base query, same as before.
+   * Recognized fragments of its query become clause cards; a `name:`
+   * fragment populates Card Name; the rest stays an opaque base query.
    */
   importUrl: (rawUrl: string) => boolean
-  clearImport: () => void
 }
 
 const QueryStoreContext = createContext<QueryStoreValue | null>(null)
@@ -231,14 +227,23 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
   // pushState) so it doesn't spam the back button.
   useEffect(() => {
     const timeout = setTimeout(() => {
-      writeUrlState(state.instances, state.sort)
+      writeUrlState(state.instances, state.sort, state.cardName, state.printedOnly)
     }, 500)
     return () => clearTimeout(timeout)
-  }, [state.instances, state.sort])
+  }, [state.instances, state.sort, state.cardName, state.printedOnly])
 
   const value = useMemo<QueryStoreValue>(() => {
+    // One `name:` token per word, ANDed — matches Scryfall's own bare-word
+    // search semantics (confirmed against the API: `name:bolt name:lightning`
+    // finds "Lightning Bolt" regardless of word order, while a single quoted
+    // `name:"bolt lightning"` phrase matches nothing). A deliberately quoted
+    // segment still survives as one literal phrase, same as Oracle Text.
+    const nameToken = state.cardName.trim() ? formatMultiWordClause('name', state.cardName) : ''
+    const printedOnlyToken = state.printedOnly ? '-is:digital' : ''
     const additions = buildQuery(state.instances)
-    const query = [state.baseQuery, additions].filter(Boolean).join(' ')
+    const query = [nameToken, printedOnlyToken, state.baseQuery, additions]
+      .filter(Boolean)
+      .join(' ')
 
     const mergedParams = new URLSearchParams(state.importedParams ?? undefined)
     for (const [key, val] of Object.entries(buildUrlParams(state.instances))) {
@@ -250,13 +255,19 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
 
     return {
       instances: state.instances,
-      importedQuery: state.importedQuery,
-      hasImport: state.importedParams !== null,
+      cardName: state.cardName,
+      setCardName: (name) => dispatch({ type: 'SET_CARD_NAME', name }),
+      printedOnly: state.printedOnly,
+      setPrintedOnly: (printedOnly) => dispatch({ type: 'SET_PRINTED_ONLY', printedOnly }),
       query,
+      hasActiveSearch: Boolean(
+        state.cardName.trim() || state.instances.length > 0 || state.baseQuery.trim(),
+      ),
       url: buildScryfallUrl(query, mergedParams),
       resultParams: Object.fromEntries(mergedParams.entries()),
       sort: state.sort,
       setSort: (sort) => dispatch({ type: 'SET_SORT', sort }),
+      resetAll: () => dispatch({ type: 'RESET' }),
       addClause: (clauseId) => dispatch({ type: 'ADD_CLAUSE', clauseId }),
       setClauseValue: (clauseId, value) => dispatch({ type: 'SET_CLAUSE_VALUE', clauseId, value }),
       removeInstance: (instanceId) => dispatch({ type: 'REMOVE_INSTANCE', instanceId }),
@@ -267,17 +278,25 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       importUrl: (rawUrl) => {
         const parsed = parseScryfallUrl(rawUrl)
         if (!parsed) return false
-        const { instances: recognizedInstances, residual } = parseQuery(parsed.baseQuery)
+        const { name: explicitName, residual: withoutName } = extractCardNameToken(parsed.baseQuery)
+        const { instances: recognizedInstances, residual: withoutClauses } = parseQuery(withoutName)
+        const { printedOnly, residual: withoutPrintedOnly } = extractPrintedOnlyToken(withoutClauses)
+        // Bare words/phrases in `q` are an implicit name search on Scryfall
+        // (`dragon` behaves like `name:dragon`, not `o:dragon`) — folded in
+        // after explicit `name:` and every clause has already claimed its
+        // tokens, so only genuinely unrecognized words reach here.
+        const { words: bareWords, residual } = extractBareSearchWords(withoutPrintedOnly)
+        const impliedName = [explicitName, ...bareWords].filter(Boolean).join(' ') || null
         dispatch({
           type: 'IMPORT_URL',
-          importedQuery: parsed.baseQuery,
           residual,
           recognizedInstances,
           params: parsed.params,
+          cardName: impliedName,
+          printedOnly,
         })
         return true
       },
-      clearImport: () => dispatch({ type: 'CLEAR_IMPORT' }),
     }
   }, [state])
 

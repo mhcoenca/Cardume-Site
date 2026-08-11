@@ -9,6 +9,10 @@ import type { QueryClause } from '../types'
 // Color Identity skips the operator dropdown entirely and always
 // serializes as id<=.
 const FRAGMENT_PATTERN = /^id<=(.+)$/i
+// `commander:` is Scryfall's own shorthand for `id<=` (confirmed against
+// the search API — identical result counts) — this clause's own toQuery
+// always emits `id<=`; fromQuery accepts both for imports.
+const COMMANDER_PATTERN = /^commander:(.+)$/i
 
 export const identityClause: QueryClause<string[]> = {
   id: 'identity',
@@ -26,7 +30,7 @@ export const identityClause: QueryClause<string[]> = {
     return `id<=${operand}`
   },
   fromQuery: (fragment) => {
-    const match = FRAGMENT_PATTERN.exec(fragment)
+    const match = FRAGMENT_PATTERN.exec(fragment) ?? COMMANDER_PATTERN.exec(fragment)
     if (!match) return null
     const operand = match[1]
     if (operand.toLowerCase() === 'c') return ['C']

@@ -3,7 +3,12 @@ import { Button } from '@/components/ui/button'
 export function SidebarFooter() {
   return (
     <div className="flex flex-col gap-3 border-t border-border p-5">
-      <Button variant="outline" className="w-full" nativeButton={false} render={<a href="/app/" />}>
+      <Button
+        variant="outline"
+        className="w-full"
+        nativeButton={false}
+        render={<a href="/app/" target="_blank" rel="noreferrer" />}
+      >
         Check out the Cardume app
       </Button>
 

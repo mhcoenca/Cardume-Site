@@ -1,5 +1,5 @@
 import { Quote } from 'lucide-react'
-import { formatMultiWordClause } from '@/lib/textOperand'
+import { extractMultiWordTokens, formatMultiWordClause } from '@/lib/textOperand'
 import type { QueryClause } from '../types'
 
 export const flavorTextClause: QueryClause<string> = {
@@ -12,13 +12,10 @@ export const flavorTextClause: QueryClause<string> = {
   inputType: 'text',
   defaultValue: '',
   toQuery: (value) => (value.trim() ? formatMultiWordClause('ft', value) : ''),
-  fromQuery: (fragment) => {
-    if (!fragment.toLowerCase().startsWith('ft:')) return null
-    const operand = fragment.slice('ft:'.length)
-    const isQuoted = operand.length >= 2 && operand.startsWith('"') && operand.endsWith('"')
-    const unquoted = isQuoted ? operand.slice(1, -1) : operand
-    return unquoted || null
-  },
+  // `ft:` and `flavor:` are the same operator (confirmed against the search
+  // API). Claims every matching token anywhere in the query, so a multi-word
+  // value survives a URL round-trip instead of collapsing to one word.
+  fromQueryAll: (tokens) => extractMultiWordTokens(['ft', 'flavor'], tokens),
   metadata: {
     keywords: ['flavor', 'reminder text'],
     examples: ['ft:"last words"'],

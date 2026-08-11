@@ -1,5 +1,4 @@
 import { registerQueryClause } from '../registry'
-import { cardNameClause } from './card-name'
 import { oracleTextClause } from './oracle-text'
 import { oracleTagClause } from './oracle-tag'
 import { reverseOracleTagClause } from './reverse-oracle-tag'
@@ -26,7 +25,10 @@ import { loreFinderClause } from './lore-finder'
 // Sort and Display aren't clauses at all anymore — neither ever affected the
 // query, only the result URL/display, so Sort now lives as a fixed control
 // on the Results action bar (see src/lib/sortOptions.ts) and Display was
-// dropped outright (unused in practice).
+// dropped outright (unused in practice). Card Name and Printed Only are the
+// same story — fixed header controls (see useQueryStore.tsx), not clauses;
+// Printed Only in particular needs to apply globally regardless of which
+// clauses are active, which it couldn't do as part of a removable clause.
 //
 // Category taxonomy: Rarity, Set, Price, Legality, and Criteria were each
 // (or would have been, for Criteria) their own single-clause sidebar
@@ -35,11 +37,7 @@ import { loreFinderClause } from './lore-finder'
 // where it's legal, promo/foil/frame attributes) rather than its rules
 // identity. Type Line similarly merged into "Type & Stats" alongside
 // Power/Toughness.
-//
-// Card Name is `pinned` — always present as the first canvas card, never
-// offered in the sidebar (see Sidebar.tsx), so its `category` is inert.
 
-registerQueryClause(cardNameClause)
 registerQueryClause(oracleTextClause)
 registerQueryClause(oracleTagClause)
 registerQueryClause(reverseOracleTagClause)

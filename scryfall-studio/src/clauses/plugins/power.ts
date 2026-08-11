@@ -8,6 +8,7 @@ export const powerClause = createOperatorNumberClause({
   category: 'Type & Stats',
   icon: Swords,
   operator: 'pow',
+  aliases: ['power'],
   metadata: {
     examples: ['pow>=4', 'pow=2'],
     docsUrl: 'https://scryfall.com/docs/syntax#numbers',

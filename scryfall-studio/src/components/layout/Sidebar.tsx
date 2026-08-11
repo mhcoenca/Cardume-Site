@@ -5,6 +5,7 @@ import { ClauseSelector } from '@/components/clauses/ClauseSelector'
 import { SearchBox } from '@/components/shared/SearchBox'
 import { useQueryStore } from '@/store/useQueryStore'
 import { AddAllFiltersButton } from './AddAllFiltersButton'
+import { ImportUrlButton } from './ImportUrlButton'
 import { OpenQueryButton } from './OpenQueryButton'
 import { SidebarFooter } from './SidebarFooter'
 
@@ -28,9 +29,7 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
 
   const grouped = useMemo(() => {
     const source = search.trim() ? searchQueryClauses(search) : listQueryClauses()
-    // Pinned clauses (Card Name) are always in the canvas already — they're
-    // not an optional filter to pick, so they don't belong in this list.
-    return groupByCategory(source.filter((clause) => !clause.pinned))
+    return groupByCategory(source)
   }, [search])
   const addedIds = new Set(instances.map((instance) => instance.clauseId))
 
@@ -65,6 +64,7 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
 
         <div className="mt-2 flex flex-col gap-2 border-t border-border py-5">
           <AddAllFiltersButton onAdd={onSelectClause} />
+          <ImportUrlButton />
           <OpenQueryButton />
         </div>
       </div>

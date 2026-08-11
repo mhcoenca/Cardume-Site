@@ -1,7 +1,10 @@
 import { Tags } from 'lucide-react'
+import { extractGroupedTokens } from '@/query/parseQuery'
 import { getOracleTagBySlug } from '@/services/oracleTags/OracleTagService'
 import type { OracleTagValue } from '@/services/oracleTags/types'
 import type { QueryClause } from '../types'
+
+const TOKEN_PATTERN = /^otag:(\S+)$/i
 
 export type OracleTagCombineMode = 'and' | 'or'
 
@@ -27,23 +30,21 @@ export const oracleTagClause: QueryClause<OracleTagClauseValue> = {
     if (tokens.length === 1) return tokens[0]
     return value.combineMode === 'or' ? `(${tokens.join(' OR ')})` : `(${tokens.join(' ')})`
   },
-  // Only reconstructs a single otag: token into a one-tag value on import —
-  // same limitation as every other multi-value clause (Criteria, Type
-  // Line), since the URL-import parser recognizes one query token at a
-  // time, not a group.
-  fromQuery: (fragment) => {
-    if (!fragment.toLowerCase().startsWith('otag:')) return null
-    const slug = fragment.slice('otag:'.length)
-    if (!slug) return null
+  // Reconstructs a single bare `otag:x` token, or one `(otag:a otag:b)` /
+  // `(otag:a OR otag:b)` group — whichever this clause's own toQuery would
+  // have produced.
+  fromQueryAll: (tokens) => {
+    const result = extractGroupedTokens(tokens, TOKEN_PATTERN)
+    if (!result) return null
     // The dataset is lazy-loaded on first focus, so it likely isn't ready
     // yet during an import. Fall back to the slug as both id and label —
     // the real label appears once the user opens this card and the
     // dataset loads (label === slug for most tags anyway).
-    const cached = getOracleTagBySlug(slug)
-    const tag = cached
-      ? { id: cached.id, slug: cached.slug, label: cached.label }
-      : { id: slug, slug, label: slug }
-    return { tags: [tag], combineMode: 'and' }
+    const tags = result.items.map((slug) => {
+      const cached = getOracleTagBySlug(slug)
+      return cached ? { id: cached.id, slug: cached.slug, label: cached.label } : { id: slug, slug, label: slug }
+    })
+    return { value: { tags, combineMode: result.combineMode }, remaining: result.remaining }
   },
   metadata: {
     keywords: ['tagger', 'functional tag', 'tagged'],

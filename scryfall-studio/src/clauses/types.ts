@@ -56,12 +56,6 @@ export interface QueryClause<TValue = unknown> {
   /** Static choices for 'select' and multi-select input types. */
   options?: QueryClauseOption[]
   defaultValue: TValue
-  /**
-   * Always present in the canvas, at the top, and can't be removed or
-   * reordered — for the one or two clauses so fundamental they aren't
-   * really "optional filters" (e.g. Card Name). Not offered in the sidebar.
-   */
-  pinned?: boolean
   /** Serializes the clause's current value into its Scryfall query (`q`) fragment. */
   toQuery: (value: TValue) => string
   /**
@@ -75,6 +69,17 @@ export interface QueryClause<TValue = unknown> {
    * token unrecognized (it stays in the opaque base query).
    */
   fromQuery?: (fragment: string) => TValue | null
+  /**
+   * For clauses whose value can span multiple query tokens — multi-word
+   * text (Oracle/Flavor/Lore Text emit one token per word) or a grouped
+   * multi-value selection (Type Line, Criteria, Oracle Tag, Rarity wrap
+   * 2+ values in one `(...)` token). Given the *entire* remaining token
+   * list, scans it once, claims every token belonging to this clause, and
+   * returns the combined value plus whatever wasn't claimed. Tried before
+   * `fromQuery`, which only ever sees one token at a time. Most clauses
+   * don't need this.
+   */
+  fromQueryAll?: (tokens: string[]) => { value: TValue; remaining: string[] } | null
   validate?: (value: TValue) => boolean
   metadata?: QueryClauseMetadata
 }

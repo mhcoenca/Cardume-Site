@@ -191,7 +191,20 @@ export function TypeLineInput({ value, onChange }: TypeLineInputProps) {
             types={groupByCategory.get(category)?.types ?? []}
             loading={loading && !groupByCategory.has(category)}
             value={value.types}
-            onChange={(types) => onChange({ ...value, types })}
+            // Prune a removed type out of `negated` too, so it doesn't
+            // linger as dead state if the same type gets re-added later.
+            onChange={(types) =>
+              onChange({ ...value, types, negated: value.negated.filter((n) => types.includes(n)) })
+            }
+            negated={value.negated}
+            onToggleNegate={(type) =>
+              onChange({
+                ...value,
+                negated: value.negated.includes(type)
+                  ? value.negated.filter((n) => n !== type)
+                  : [...value.negated, type],
+              })
+            }
           />
         ),
       )}

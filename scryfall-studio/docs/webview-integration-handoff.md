@@ -61,26 +61,19 @@ doc was written — the analysis holds regardless of exactly how "big" the
 tool has grown, since the whole point of the WebView choice is that its
 cost doesn't scale with the tool's complexity.
 
-## What's NOT settled yet — read this before hardcoding a URL
+## Where the tool lives
 
-The tool is deployed today at **`https://card-u.me/scryfall`**. Separately,
-there's an *unexecuted* plan to make it the **root** of card-u.me
-(`https://card-u.me/`) and move the current Cardume marketing landing page
-to `card-u.me/app`. That migration has **not happened** as of this
-handoff — it's blocked on:
-1. Deciding/building a "back to the tool" section on the landing page
-   (the reverse-navigation piece), which itself is still just an idea.
-2. Careful handling of this repo's existing `/.well-known/apple-app-site-
-   association` and `/.well-known/assetlinks.json` (Universal Links / App
-   Links domain verification — must keep working unmodified) and the
-   existing `/pedido/*` redirect rule (order-share deep links), so any new
-   catch-all routing added for the migration doesn't clobber them.
+The tool is deployed at the bare root, **`https://card-u.me/`**. The root
+migration described in earlier drafts of this doc has since shipped: the
+Cardume marketing landing page now lives at `https://card-u.me/app`, and
+`/.well-known/apple-app-site-association`, `/.well-known/assetlinks.json`,
+and the `/pedido/*` order-share redirect all kept working unmodified
+through the move.
 
-**Implication for you:** don't hardcode `card-u.me/scryfall` deep into the
-Android code as if it's permanent. Put it behind a single named constant
-(e.g. `SCRYFALL_STUDIO_URL`) so updating it later — if/when the migration
-lands and the tool moves to the bare root — is a one-line change, not a
-find-and-replace across the codebase.
+**Implication for you:** still put the URL behind a single named constant
+(e.g. `SCRYFALL_STUDIO_URL`) rather than scattering `https://card-u.me/`
+literals through the Android code — cheap insurance against whatever the
+next reshuffle turns out to be, not because another one is currently planned.
 
 ## Implementation guidance for the WebView screen
 

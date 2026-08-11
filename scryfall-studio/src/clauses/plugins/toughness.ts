@@ -8,6 +8,7 @@ export const toughnessClause = createOperatorNumberClause({
   category: 'Type & Stats',
   icon: Shield,
   operator: 'tou',
+  aliases: ['toughness'],
   metadata: {
     examples: ['tou>=4', 'tou=2'],
     docsUrl: 'https://scryfall.com/docs/syntax#numbers',

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 interface TypeCategoryRowProps {
   label: string
@@ -10,9 +11,20 @@ interface TypeCategoryRowProps {
   /** The clause's full selected-types array, spanning every open category. */
   value: string[]
   onChange: (value: string[]) => void
+  /** The clause's full negated-types array, spanning every open category. */
+  negated: string[]
+  onToggleNegate: (type: string) => void
 }
 
-export function TypeCategoryRow({ label, types, loading, value, onChange }: TypeCategoryRowProps) {
+export function TypeCategoryRow({
+  label,
+  types,
+  loading,
+  value,
+  onChange,
+  negated,
+  onToggleNegate,
+}: TypeCategoryRowProps) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
 
@@ -36,22 +48,36 @@ export function TypeCategoryRow({ label, types, loading, value, onChange }: Type
 
       {selected.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
-          {selected.map((type) => (
-            <span
-              key={type}
-              className="flex items-center gap-1 rounded-md border border-primary bg-primary px-2 py-1 text-xs font-medium text-primary-foreground"
-            >
-              {type}
-              <button
-                type="button"
-                onClick={() => toggle(type)}
-                aria-label={`Remove ${type}`}
-                className="opacity-80 hover:opacity-100"
+          {selected.map((type) => {
+            const isNegated = negated.includes(type)
+            return (
+              <span
+                key={type}
+                className="flex items-center gap-1 rounded-md border border-primary bg-primary py-1 pr-2 pl-1 text-xs font-medium text-primary-foreground"
               >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => onToggleNegate(type)}
+                  title={isNegated ? 'Excluding — click to include' : 'Including — click to exclude'}
+                  className={cn(
+                    'rounded px-1.5 py-0.5 text-[10px] font-semibold',
+                    isNegated ? 'bg-destructive text-white' : 'bg-primary-foreground/20',
+                  )}
+                >
+                  {isNegated ? 'NOT' : 'IS'}
+                </button>
+                {type}
+                <button
+                  type="button"
+                  onClick={() => toggle(type)}
+                  aria-label={`Remove ${type}`}
+                  className="opacity-80 hover:opacity-100"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )
+          })}
         </div>
       )}
 

@@ -6,12 +6,12 @@ import { useQueryStore } from '@/store/useQueryStore'
 
 /** Query builder on top, live results underneath — the "document" and its output. */
 export function CanvasArea() {
-  const { query, resultParams, instances } = useQueryStore()
+  const { query, resultParams, instances, hasActiveSearch } = useQueryStore()
   const [filtersExpanded, setFiltersExpanded] = useState(true)
   const [resultsExpanded, setResultsExpanded] = useState(true)
 
   const showFiltersToggle = instances.length > 0
-  const showResultsToggle = query.trim().length > 0
+  const showResultsToggle = hasActiveSearch
 
   return (
     <div className="flex flex-col">
@@ -61,7 +61,7 @@ export function CanvasArea() {
         </div>
       )}
 
-      {resultsExpanded && <ResultsPanel query={query} params={resultParams} />}
+      {resultsExpanded && hasActiveSearch && <ResultsPanel query={query} params={resultParams} />}
     </div>
   )
 }

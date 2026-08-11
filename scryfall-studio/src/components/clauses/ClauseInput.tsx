@@ -18,14 +18,12 @@ import {
 } from '@/components/ui/select'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
 import { ReverseOracleTagInput } from '@/components/oracle-tags/ReverseOracleTagInput'
-import { CardNameInput } from './CardNameInput'
 import { CriteriaInput } from './CriteriaInput'
 import { ManaCostInput } from './ManaCostInput'
 import { ToggleButtonGroup } from './ToggleButtonGroup'
 import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
 import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
-import type { CardNameValue } from '@/clauses/plugins/card-name'
 import type { CriteriaValue } from '@/clauses/plugins/criteria'
 import type { TypeLineValue } from '@/clauses/plugins/card-types'
 import {
@@ -87,15 +85,6 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
         </div>
       )
     }
-
-    case 'card-name':
-      return (
-        <CardNameInput
-          value={value as CardNameValue}
-          onChange={onChange}
-          placeholder={clause.metadata?.placeholder}
-        />
-      )
 
     case 'oracle-tag':
       return (

@@ -4,14 +4,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useQueryStore } from '@/store/useQueryStore'
 
 export function OpenQueryButton() {
-  const { query, url } = useQueryStore()
-  const hasQuery = query.trim().length > 0
+  const { hasActiveSearch, url } = useQueryStore()
 
   function handleOpen() {
     window.open(url, '_blank', 'noreferrer')
   }
 
-  if (hasQuery) {
+  if (hasActiveSearch) {
     return (
       <Button variant="ghost" className="w-full" onClick={handleOpen}>
         <ExternalLink className="h-3.5 w-3.5" />

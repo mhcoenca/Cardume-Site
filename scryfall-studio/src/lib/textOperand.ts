@@ -27,3 +27,32 @@ export function formatMultiWordClause(operator: string, value: string): string {
     .map((token) => `${operator}:${token}`)
     .join(' ')
 }
+
+/**
+ * The inverse of `formatMultiWordClause`, for the URL-import parser: scans
+ * every token for any of the given operator names (Scryfall aliases, e.g.
+ * `o`/`oracle`), claims all of them regardless of position, and joins their
+ * operands back into one string — round-trips correctly through
+ * `formatMultiWordClause` since a claimed quoted operand keeps its quotes,
+ * so `tokenizeQuery` treats it as one atomic word again on re-serialize.
+ */
+export function extractMultiWordTokens(
+  operatorNames: string[],
+  tokens: string[],
+): { value: string; remaining: string[] } | null {
+  const pattern = new RegExp(`^(?:${operatorNames.join('|')}):(.+)$`, 'i')
+  const words: string[] = []
+  const remaining: string[] = []
+
+  for (const token of tokens) {
+    const match = pattern.exec(token)
+    if (match) {
+      words.push(match[1])
+    } else {
+      remaining.push(token)
+    }
+  }
+
+  if (!words.length) return null
+  return { value: words.join(' '), remaining }
+}

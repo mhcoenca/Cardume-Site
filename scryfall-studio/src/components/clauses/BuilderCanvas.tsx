@@ -20,11 +20,6 @@ export function BuilderCanvas() {
       {instances.map((instance, index) => {
         const clause = getQueryClause(instance.clauseId)
         if (!clause) return null
-        // A neighbor being pinned (Card Name) blocks moving into its slot,
-        // on top of the usual start/end-of-list bounds.
-        const prevPinned = index > 0 && getQueryClause(instances[index - 1].clauseId)?.pinned
-        const nextPinned =
-          index < instances.length - 1 && getQueryClause(instances[index + 1].clauseId)?.pinned
         return (
           <ClauseCard
             key={instance.instanceId}
@@ -34,8 +29,8 @@ export function BuilderCanvas() {
             onRemove={() => removeInstance(instance.instanceId)}
             onMoveUp={() => moveInstance(instance.instanceId, 'up')}
             onMoveDown={() => moveInstance(instance.instanceId, 'down')}
-            canMoveUp={index > 0 && !prevPinned}
-            canMoveDown={index < instances.length - 1 && !nextPinned}
+            canMoveUp={index > 0}
+            canMoveDown={index < instances.length - 1}
           />
         )
       })}

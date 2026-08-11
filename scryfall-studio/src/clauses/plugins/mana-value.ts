@@ -8,6 +8,7 @@ export const manaValueClause = createOperatorNumberClause({
   category: 'Mana',
   icon: Gauge,
   operator: 'mv',
+  aliases: ['cmc'],
   metadata: {
     keywords: ['cmc', 'converted mana cost', 'cost'],
     examples: ['mv<=3', 'mv=5'],
