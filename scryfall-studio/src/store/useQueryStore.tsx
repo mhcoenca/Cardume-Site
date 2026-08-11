@@ -43,6 +43,11 @@ type QueryAction =
       cardName: string | null
       printedOnly: boolean
     }
+  | {
+      type: 'SYNC_QUERY_TEXT'
+      residual: string
+      recognizedInstances: QueryClauseInstance[]
+    }
   | { type: 'SET_SORT'; sort: SortValue }
   | { type: 'RESET' }
 
@@ -166,6 +171,26 @@ function queryReducer(state: QueryState, action: QueryAction): QueryState {
         printedOnly: action.printedOnly,
       }
     }
+    // The live query-syntax bar's counterpart to IMPORT_URL: unlike
+    // importing (an additive paste that only ever adds/updates clauses),
+    // the bar is a two-way, always-live view of the clause-driven part of
+    // the query, so it must also *remove* a clause whose syntax the user
+    // deleted from the text — otherwise deleting `t:creature` from the bar
+    // wouldn't remove the Type Line card, defeating the "text is the
+    // source of truth" model. Existing clauses keep their instanceId (so
+    // React reconciliation — and any local UI state keyed on it — survives
+    // an edit that doesn't touch that clause).
+    case 'SYNC_QUERY_TEXT': {
+      const recognizedByClauseId = new Map(
+        action.recognizedInstances.map((i) => [i.clauseId, i]),
+      )
+      const kept = state.instances
+        .filter((i) => recognizedByClauseId.has(i.clauseId))
+        .map((i) => ({ ...i, value: recognizedByClauseId.get(i.clauseId)!.value }))
+      const keptIds = new Set(kept.map((i) => i.clauseId))
+      const added = action.recognizedInstances.filter((i) => !keptIds.has(i.clauseId))
+      return { ...state, baseQuery: action.residual, instances: [...kept, ...added] }
+    }
     case 'SET_SORT':
       return { ...state, sort: action.sort }
     case 'RESET':
@@ -183,6 +208,14 @@ interface QueryStoreValue {
   setPrintedOnly: (printedOnly: boolean) => void
   /** The full query: Card Name + Printed Only + unrecognized imported portion + every clause's toQuery(). */
   query: string
+  /**
+   * Just the clause-driven part of `query` — the residual base query plus
+   * every clause's `toQuery()`, excluding Card Name/Printed Only (those
+   * already have their own dedicated header controls, so showing/editing
+   * them a second time here would just be two sources of truth for the
+   * same state). Backs the live query-syntax bar.
+   */
+  clauseQueryText: string
   /**
    * Whether there's a deliberate search to run/show — Card Name, at least
    * one clause, or an imported base query. Deliberately excludes Printed
@@ -215,6 +248,14 @@ interface QueryStoreValue {
    * fragment populates Card Name; the rest stays an opaque base query.
    */
   importUrl: (rawUrl: string) => boolean
+  /**
+   * Reparses `clauseQueryText` (or an edited version of it) and reconciles
+   * `instances` against it — adds clauses newly present, updates ones
+   * still present, and removes ones no longer mentioned. Anything no
+   * registered clause recognizes stays as the opaque base query (still
+   * ANDed into the final search).
+   */
+  syncQueryText: (text: string) => void
 }
 
 const QueryStoreContext = createContext<QueryStoreValue | null>(null)
@@ -241,9 +282,8 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
     const nameToken = state.cardName.trim() ? formatMultiWordClause('name', state.cardName) : ''
     const printedOnlyToken = state.printedOnly ? '-is:digital' : ''
     const additions = buildQuery(state.instances)
-    const query = [nameToken, printedOnlyToken, state.baseQuery, additions]
-      .filter(Boolean)
-      .join(' ')
+    const clauseQueryText = [state.baseQuery, additions].filter(Boolean).join(' ')
+    const query = [nameToken, printedOnlyToken, clauseQueryText].filter(Boolean).join(' ')
 
     const mergedParams = new URLSearchParams(state.importedParams ?? undefined)
     for (const [key, val] of Object.entries(buildUrlParams(state.instances))) {
@@ -260,6 +300,7 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       printedOnly: state.printedOnly,
       setPrintedOnly: (printedOnly) => dispatch({ type: 'SET_PRINTED_ONLY', printedOnly }),
       query,
+      clauseQueryText,
       hasActiveSearch: Boolean(
         state.cardName.trim() || state.instances.length > 0 || state.baseQuery.trim(),
       ),
@@ -296,6 +337,10 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
           printedOnly,
         })
         return true
+      },
+      syncQueryText: (text) => {
+        const { instances: recognizedInstances, residual } = parseQuery(text)
+        dispatch({ type: 'SYNC_QUERY_TEXT', residual, recognizedInstances })
       },
     }
   }, [state])

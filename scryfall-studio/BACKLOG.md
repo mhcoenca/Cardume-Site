@@ -41,22 +41,30 @@ once done rather than letting it drift from reality.
 - [x] ~~**Loyalty filter (planeswalkers)**~~ — added
       (`src/clauses/plugins/loyalty.ts`) under "Type & Stats", same
       `createOperatorNumberClause` factory as Power/Toughness.
-
-## Feature ideas (raised, not built)
-
-- [ ] **Visual AND/OR/NOT builder for prose text clauses** — raised by
-      u/Aerim on r/magicTCG (2026-08-11). Oracle Text/Flavor Text/Lore
-      Finder (`formatMultiWordClause` in `src/lib/textOperand.ts`) only
-      support implicit-AND, one-`operator:word`-per-word search — there's
-      no visual way to combine multiple phrases with AND/OR/NOT or group
-      them with parentheses. Typing raw query syntax into the field
-      doesn't work either: every token (including literal `(`/`)`) gets
-      individually prefixed with the operator, so e.g. `("draw a card"
-      and ":") or "friend"` typed into Oracle Text serializes to
-      `o:( o:"draw a card" o:and o:":") o:or o:"friend"` — Scryfall
-      rejects it as unclosed parentheses. Needs real scoping (multiple
-      phrase rows per clause, each taggable AND/OR/NOT, probably
-      groupable) before starting — not a quick fix.
+- [x] ~~**Visual AND/OR/NOT builder for prose text clauses**~~ — raised
+      by u/Aerim on r/magicTCG (2026-08-11). Originally scoped as a
+      boolean-tree editor bolted onto Oracle/Flavor/Lore Text; design
+      discussion moved it to something more general — a live, two-way
+      "Query syntax" text bar (`src/components/clauses/QueryTextBar.tsx`,
+      top of `CanvasArea`) that reuses `parseQuery` (the same parser
+      "Import from Scryfall" already used as a one-shot paste) to keep
+      raw syntax and the clause cards continuously in sync in both
+      directions — type `t:creature`, the Type Line card opens with
+      Creature selected; delete it from the bar, the card disappears.
+      Covers Aerim's case and more, since it accepts *any* Scryfall
+      syntax, not just a fixed AND/OR/NOT vocabulary. Full plan/phase
+      history: `~/.claude/plans/bright-crafting-gem.md`.
+- [ ] **Query syntax bar: operator-name autocomplete** — Phase 2 of the
+      above. Typing a partial operator (`t:c`) should suggest the full
+      name (`t:`, `type:`) — source list already exists via
+      `listQueryClauses()` in `src/clauses/registry.ts`
+      (`.operator`/`.metadata.aliases`), no new data needed.
+- [ ] **Query syntax bar: value-level autocomplete** — Phase 3. `t:c` →
+      suggest `t:creature`, per-operator, reusing each clause's existing
+      value data source (Type Line's `typeCatalog.ts`, Set's
+      `SetService.ts`, Oracle/Art Tag's search functions). Free-text/
+      numeric operators (Oracle Text, Power…) get no suggestions — nothing
+      meaningful to offer. Build one operator at a time.
 
 ## Deferred / explicitly not built (revisit if wanted)
 

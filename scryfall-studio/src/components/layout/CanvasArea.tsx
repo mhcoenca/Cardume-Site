@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { BuilderCanvas } from '@/components/clauses/BuilderCanvas'
+import { QueryTextBar } from '@/components/clauses/QueryTextBar'
 import { ResultsPanel } from '@/components/results/ResultsPanel'
 import { useQueryStore } from '@/store/useQueryStore'
 
@@ -15,6 +16,7 @@ export function CanvasArea() {
 
   return (
     <div className="flex flex-col">
+      <QueryTextBar />
       {filtersExpanded && <BuilderCanvas />}
 
       {(showFiltersToggle || showResultsToggle) && (
