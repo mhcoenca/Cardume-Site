@@ -15,6 +15,8 @@ export type QueryClauseInputType =
   | 'legality'
   | 'checkbox'
   | 'select'
+  | 'set'
+  | 'art-tag'
 
 export interface QueryClauseMetadata {
   /** Extra search terms that should surface this clause without knowing its operator. */

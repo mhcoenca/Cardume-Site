@@ -11,7 +11,7 @@ export const setClause: QueryClause<string> = {
   category: 'Collecting',
   icon: Package,
   operator: 's',
-  inputType: 'text',
+  inputType: 'set',
   defaultValue: '',
   toQuery: (value) => (value.trim() ? `s:${formatTextOperand(value)}` : ''),
   fromQuery: (fragment) => {

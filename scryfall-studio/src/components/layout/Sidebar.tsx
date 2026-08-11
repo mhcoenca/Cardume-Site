@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { listQueryClauses, searchQueryClauses } from '@/clauses/registry'
 import type { AnyQueryClause } from '@/clauses/types'
 import { ClauseSelector } from '@/components/clauses/ClauseSelector'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { SearchBox } from '@/components/shared/SearchBox'
 import { useQueryStore } from '@/store/useQueryStore'
 import { AddAllFiltersButton } from './AddAllFiltersButton'
@@ -25,6 +26,7 @@ interface SidebarProps {
 
 export function Sidebar({ onSelectClause }: SidebarProps) {
   const [search, setSearch] = useState('')
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const { instances, addClause } = useQueryStore()
 
   const grouped = useMemo(() => {
@@ -32,6 +34,16 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
     return groupByCategory(source)
   }, [search])
   const addedIds = new Set(instances.map((instance) => instance.clauseId))
+  const isSearching = search.trim().length > 0
+
+  function toggleCategory(category: string, open: boolean) {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      if (open) next.delete(category)
+      else next.add(category)
+      return next
+    })
+  }
 
   function handleSelect(clauseId: string) {
     addClause(clauseId)
@@ -44,10 +56,12 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
         <SearchBox value={search} onChange={setSearch} placeholder="Search clauses…" />
         {Array.from(grouped.entries()).map(([category, clauses]) =>
           clauses.length ? (
-            <div key={category}>
-              <h3 className="px-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                {category}
-              </h3>
+            <CollapsibleSection
+              key={category}
+              title={category}
+              open={isSearching || !collapsed.has(category)}
+              onOpenChange={(open) => toggleCategory(category, open)}
+            >
               <div className="flex flex-col">
                 {clauses.map((clause) => (
                   <ClauseSelector
@@ -58,7 +72,7 @@ export function Sidebar({ onSelectClause }: SidebarProps) {
                   />
                 ))}
               </div>
-            </div>
+            </CollapsibleSection>
           ) : null,
         )}
 

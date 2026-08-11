@@ -16,14 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ArtTagInput } from '@/components/art-tags/ArtTagInput'
 import { OracleTagInput } from '@/components/oracle-tags/OracleTagInput'
 import { ReverseOracleTagInput } from '@/components/oracle-tags/ReverseOracleTagInput'
+import { SetInput } from '@/components/sets/SetInput'
 import { CriteriaInput } from './CriteriaInput'
 import { ManaCostInput } from './ManaCostInput'
 import { ToggleButtonGroup } from './ToggleButtonGroup'
 import { TypeLineInput } from './TypeLineInput'
 import { COLOR_OPERATORS, type ColorClauseValue } from '@/clauses/factories/colorClause'
 import { COMPARISON_OPERATORS, type OperatorNumberValue } from '@/clauses/factories/operatorNumberClause'
+import type { ArtTagClauseValue } from '@/clauses/plugins/art-tag'
 import type { CriteriaValue } from '@/clauses/plugins/criteria'
 import type { TypeLineValue } from '@/clauses/plugins/card-types'
 import {
@@ -86,6 +89,15 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
       )
     }
 
+    case 'set':
+      return (
+        <SetInput
+          value={(value as string) ?? ''}
+          onChange={onChange}
+          placeholder={clause.metadata?.placeholder}
+        />
+      )
+
     case 'oracle-tag':
       return (
         <OracleTagInput
@@ -109,6 +121,15 @@ export function ClauseInput({ clause, value, onChange }: ClauseInputProps) {
             ))}
           </SelectContent>
         </Select>
+      )
+
+    case 'art-tag':
+      return (
+        <ArtTagInput
+          value={value as ArtTagClauseValue}
+          onChange={onChange}
+          placeholder={clause.metadata?.placeholder}
+        />
       )
 
     case 'reverse-oracle-tag':

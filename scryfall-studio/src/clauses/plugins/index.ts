@@ -2,6 +2,7 @@ import { registerQueryClause } from '../registry'
 import { oracleTextClause } from './oracle-text'
 import { oracleTagClause } from './oracle-tag'
 import { reverseOracleTagClause } from './reverse-oracle-tag'
+import { artTagClause } from './art-tag'
 import { colorsClause } from './colors'
 import { identityClause } from './identity'
 import { manaValueClause } from './mana-value'
@@ -9,6 +10,7 @@ import { manaCostClause } from './mana-cost'
 import { cardTypesClause } from './card-types'
 import { powerClause } from './power'
 import { toughnessClause } from './toughness'
+import { loyaltyClause } from './loyalty'
 import { rarityClause } from './rarity'
 import { setClause } from './set'
 import { priceClause } from './price'
@@ -48,6 +50,7 @@ registerQueryClause(manaCostClause)
 registerQueryClause(cardTypesClause)
 registerQueryClause(powerClause)
 registerQueryClause(toughnessClause)
+registerQueryClause(loyaltyClause)
 registerQueryClause(rarityClause)
 registerQueryClause(setClause)
 registerQueryClause(priceClause)
@@ -56,3 +59,4 @@ registerQueryClause(criteriaClause)
 registerQueryClause(artistClause)
 registerQueryClause(flavorTextClause)
 registerQueryClause(loreFinderClause)
+registerQueryClause(artTagClause)
