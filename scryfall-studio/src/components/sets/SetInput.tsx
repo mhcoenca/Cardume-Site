@@ -123,7 +123,7 @@ export function SetInput({ value, onChange, placeholder }: SetInputProps) {
       </div>
 
       {open && (
-        <div className="absolute z-10 mt-1 max-h-80 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+        <div className="absolute z-20 mt-1 max-h-80 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
           <div
             onMouseDown={(event) => event.preventDefault()}
             className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-popover px-3 py-1.5"

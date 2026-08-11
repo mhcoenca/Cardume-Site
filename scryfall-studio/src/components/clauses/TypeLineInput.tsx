@@ -67,7 +67,7 @@ function TypeCategoryMultiSelect({ selected, onToggle }: TypeCategoryMultiSelect
       </button>
 
       {open && (
-        <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
+        <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
           {TYPE_CATEGORIES.map(({ category, label }) => {
             const isChecked = selected.has(category)
             return (

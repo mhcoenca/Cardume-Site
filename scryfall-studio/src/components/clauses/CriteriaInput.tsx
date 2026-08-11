@@ -67,7 +67,7 @@ export function CriteriaInput({ value, onChange }: CriteriaInputProps) {
         />
 
         {open && suggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md">
             {suggestions.map((option) => (
               <button
                 key={option.value}

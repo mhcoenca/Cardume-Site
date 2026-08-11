@@ -96,7 +96,7 @@ export function TypeCategoryRow({
         </div>
 
         {open && (
-          <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+          <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
             {loading ? (
               <p className="p-3 text-xs text-muted-foreground">Loading…</p>
             ) : filtered.length ? (

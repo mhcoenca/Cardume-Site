@@ -144,7 +144,7 @@ export function ReverseOracleTagInput({ value, onChange }: ReverseOracleTagInput
         </div>
 
         {open && suggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+          <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
             {suggestions.map((name) => (
               <button
                 key={name}

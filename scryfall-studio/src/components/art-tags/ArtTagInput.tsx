@@ -49,7 +49,7 @@ function OptionRow({ option, onSelect }: { option: ArtTagOption; onSelect: () =>
 
 function Dropdown({ children }: { children: ReactNode }) {
   return (
-    <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+    <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
       {children}
     </div>
   )
